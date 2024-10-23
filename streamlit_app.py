@@ -46,6 +46,20 @@ st.markdown(
         font-size: 20px;  /* Adjust font size as necessary */
         font-weight: bold;  /* Make the text bold for emphasis */
     }
+
+    /* Custom style for Work Experience header */
+    .work-experience-header {
+        color: white;  /* Change the color of Work Experience section */
+        font-size: 18px;  /* Adjust font size */
+        font-weight: bold;  /* Make the text bold */
+    }
+
+    /* Custom style for Work Experience subheaders */
+    .work-experience-subheader {
+        color: white;  /* Change the color of Work Experience subheaders to white */
+        font-size: 16px;  /* Adjust font size */
+        font-weight: bold;  /* Make the text bold */
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -69,3 +83,38 @@ with tab1:
     # Optional: Button to submit the form
     if st.button("Create Account"):
         st.success(f"Account created for {username}!")
+
+with tab2:
+    # Work Experience Section
+    st.markdown('<p class="work-experience-header">Work Experience</p>', unsafe_allow_html=True)
+
+    # Initialize session state for work experiences if it doesn't exist
+    if 'work_experiences' not in st.session_state:
+        st.session_state.work_experiences = []  # List to hold work experience data
+
+    # Function to display work experience fields and remove button
+    def display_work_experience(index):
+        # Use the custom class for the subheader
+        st.markdown(f'<p class="work-experience-subheader">Work Experience {index}</p>', unsafe_allow_html=True)
+        role_title = st.text_input(f"Role Title {index}", placeholder="Enter your role title", key=f"role_title_{index}")
+        location = st.text_input(f"Location {index}", placeholder="Enter your location", key=f"location_{index}")
+        time_period = st.text_input(f"Time Period {index}", placeholder="e.g., Jan 2020 - Dec 2020", key=f"time_period_{index}")
+        job_description = st.text_area(f"Job Description {index}", placeholder="Describe your job responsibilities", key=f"job_description_{index}")
+
+        # Button to remove the specific work experience
+        if st.button(f"Remove Work Experience {index}", key=f"remove_{index}"):
+            st.session_state.work_experiences.pop(index - 1)  # Remove entry from the list
+            st.experimental_rerun()  # Rerun the app to refresh the display
+
+        return (role_title, location, time_period, job_description)
+
+    # Display all work experiences from session state
+    for i in range(len(st.session_state.work_experiences)):
+        display_work_experience(i + 1)  # Display existing work experiences
+
+    # Button to add more work experience
+    if st.button("Add Work Experience"):
+        # Collect the data from the latest experience before adding a new one
+        new_index = len(st.session_state.work_experiences) + 1
+        new_experience = display_work_experience(new_index)  # Display new entry
+        st.session_state.work_experiences.append(new_experience)  # Append new experience
