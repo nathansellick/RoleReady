@@ -1,6 +1,8 @@
 # Import packages
+# pip install streamlit_tags
 import streamlit as st
 from PIL import Image
+from streamlit_tags import st_tags
 
 # CSS for dark blue background and tab styling
 st.markdown(
@@ -72,6 +74,10 @@ if 'work_experiences' not in st.session_state:
 # Initialize session state for education if not already initialized
 if 'education_entries' not in st.session_state:
     st.session_state.education_entries = []
+
+# Initialize session state for skills if not already initialized
+if 'skills' not in st.session_state:
+    st.session_state.skills = []
 
 
 
@@ -173,3 +179,28 @@ with tab2:
                 "grade": ""
             })
             st.experimental_rerun()  # Refresh the page to reflect the addition
+
+    st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
+
+    with st.expander("Add Skills", expanded=True):
+    
+        st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
+
+        # Use st_tags to create an input field for adding skills
+        skills = st_tags(
+            label='',
+            text='Add a skill...',
+            value=st.session_state.skills,  # Pre-populate with existing skills
+            suggestions=[],  # You can add skill suggestions if needed
+            maxtags=10,  # Limit to 10 skills (optional)
+            key='skills_input'
+        )
+
+        # Store the skills back into the session state after modification
+        st.session_state.skills = skills
+
+        # Display the skills in a tag format
+        if st.session_state.skills:
+            st.markdown('<h4 style="color: white;">Your Skills:</h4>', unsafe_allow_html=True)
+            for skill in st.session_state.skills:
+                st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
