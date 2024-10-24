@@ -65,12 +65,14 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-def styled_header(title, css_class="header"):
-    st.markdown(f'<p class="{css_class}">{title}</p>', unsafe_allow_html=True)
-
 # Initialize session state for work experiences if not already initialized
 if 'work_experiences' not in st.session_state:
     st.session_state.work_experiences = []
+
+# Initialize session state for education if not already initialized
+if 'education_entries' not in st.session_state:
+    st.session_state.education_entries = []
+
 
 
 # Create multiple tabs
@@ -132,4 +134,42 @@ with tab2:
                 "description": ""
             })
             st.experimental_rerun()  # Refresh the app to reflect the addition
+    
+    st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
 
+    # Create a collapsible section for Education
+    with st.expander("Add Education", expanded=True):
+        for index, education in enumerate(st.session_state.education_entries):
+            # Correct the heading to reflect "Education" rather than "Work Experience"
+            st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
+
+            with col1:
+                # Display labels in white and input fields below
+                st.markdown('<span style="color: white;">University</span>', unsafe_allow_html=True)
+                education['university'] = st.text_input("", education.get('university', ''), key=f"university_{index}")
+
+                st.markdown('<span style="color: white;">Degree</span>', unsafe_allow_html=True)
+                education['degree'] = st.text_input("", education.get('degree', ''), key=f"degree_{index}")
+
+            with col2:
+                st.markdown('<span style="color: white;">Graduation Year</span>', unsafe_allow_html=True)
+                education['graduation year'] = st.text_input("", education.get('graduation year', ''), key=f"graduation_year_{index}")
+
+                st.markdown('<span style="color: white;">Grade</span>', unsafe_allow_html=True)
+                education['grade'] = st.text_input("", education.get('grade', ''), key=f"grade_{index}")
+
+            # Add the Remove Education button
+            if st.button(f"Remove Education {index + 1}", key=f"remove_education_{index}"):
+                st.session_state.education_entries.pop(index)
+                st.experimental_rerun()  # Refresh the page to reflect the removal
+
+        # Button to add new education entry
+        if st.button("Add Education"):
+            st.session_state.education_entries.append({
+                "university": "",
+                "degree": "",
+                "graduation year": "",
+                "grade": ""
+            })
+            st.experimental_rerun()  # Refresh the page to reflect the addition
