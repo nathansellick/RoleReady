@@ -101,12 +101,22 @@ with tab2:
             st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
             with col1:
-                experience['job_title'] = st.text_input("Job Title", experience['job_title'], key=f"job_title_{index}")
-                experience['company'] = st.text_input("Company", experience['company'], key=f"company_{index}")
-                experience['period'] = st.text_input("Period", experience['period'], key=f"period_{index}")
-                experience['location'] = st.text_input("Location", experience['location'], key=f"location_{index}")
+                # Display labels in white and input fields below
+                st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
+                experience['job_title'] = st.text_input("", experience['job_title'], key=f"job_title_{index}")
+                
+                st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
+                experience['company'] = st.text_input("", experience['company'], key=f"company_{index}")
+                
+                st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
+                experience['period'] = st.text_input("", experience['period'], key=f"period_{index}")
+                
+                st.markdown('<span style="color: white;">Location</span>', unsafe_allow_html=True)
+                experience['location'] = st.text_input("", experience['location'], key=f"location_{index}")
+                
             with col2:
-                experience['description'] = st.text_area("Job Description", experience['description'], key=f"description_{index}")
+                st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
+                experience['description'] = st.text_area("", experience['description'], key=f"description_{index}")
 
             if st.button(f"Remove Work Experience {index + 1}", key=f"remove_{index}"):
                 st.session_state.work_experiences.pop(index)
