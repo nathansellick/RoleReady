@@ -40,13 +40,6 @@ st.markdown(
         color: #00008B;  /* Dark blue text color on hover */
     }
 
-    /* Custom style for the Create an Account text */
-    .account-header {
-        color: white;  /* Change the color of the Create an Account text to white */
-        font-size: 20px;  /* Adjust font size as necessary */
-        font-weight: bold;  /* Make the text bold for emphasis */
-    }
-
     /* Custom style for Work Experience header */
     .work-experience-header {
         color: white;  /* Change the color of Work Experience section */
@@ -54,9 +47,16 @@ st.markdown(
         font-weight: bold;  /* Make the text bold */
     }
 
-    /* Custom style for Work Experience subheaders */
-    .work-experience-subheader {
-        color: white;  /* Change the color of Work Experience subheaders to white */
+    /* Custom style for Education header */
+    .education-header {
+        color: white;  /* Change the color of Education section */
+        font-size: 18px;  /* Adjust font size */
+        font-weight: bold;  /* Make the text bold */
+    }
+
+    /* Custom style for Work Experience and Education subheaders */
+    .subheader {
+        color: white;  /* Change the color of subheaders to white */
         font-size: 16px;  /* Adjust font size */
         font-weight: bold;  /* Make the text bold */
     }
@@ -65,8 +65,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Initialize session state for work experiences if not already initialized
+if 'work_experiences' not in st.session_state:
+    st.session_state.work_experiences = []
+
+# Initialize session state for education if not already initialized
+if 'education_entries' not in st.session_state:
+    st.session_state.education_entries = []
+
+
+
 # Create multiple tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help", "Resume develop"])
 
 with tab1:
     # Center-align the image with Streamlit layout
@@ -85,36 +95,81 @@ with tab1:
         st.success(f"Account created for {username}!")
 
 with tab2:
-    # Work Experience Section
-    st.markdown('<p class="work-experience-header">Work Experience</p>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: white;">Work Experience</h2>', unsafe_allow_html=True)
+    
+    # Create a collapsible section for Work Experience
+    with st.expander("Add Work Experience", expanded=True):
+        for index, experience in enumerate(st.session_state.work_experiences):
+            st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
+            with col1:
+                # Display labels in white and input fields below
+                st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
+                experience['job_title'] = st.text_input("", experience['job_title'], key=f"job_title_{index}")
+                
+                st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
+                experience['company'] = st.text_input("", experience['company'], key=f"company_{index}")
+                
+                st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
+                experience['period'] = st.text_input("", experience['period'], key=f"period_{index}")
+                
+                st.markdown('<span style="color: white;">Location</span>', unsafe_allow_html=True)
+                experience['location'] = st.text_input("", experience['location'], key=f"location_{index}")
+                
+            with col2:
+                st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
+                experience['description'] = st.text_area("", experience['description'], key=f"description_{index}")
 
-    # Initialize session state for work experiences if it doesn't exist
-    if 'work_experiences' not in st.session_state:
-        st.session_state.work_experiences = []  # List to hold work experience data
+            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_{index}"):
+                st.session_state.work_experiences.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
 
-    # Function to display work experience fields and remove button
-    def display_work_experience(index):
-        # Use the custom class for the subheader
-        st.markdown(f'<p class="work-experience-subheader">Work Experience {index}</p>', unsafe_allow_html=True)
-        role_title = st.text_input(f"Role Title {index}", placeholder="Enter your role title", key=f"role_title_{index}")
-        location = st.text_input(f"Location {index}", placeholder="Enter your location", key=f"location_{index}")
-        time_period = st.text_input(f"Time Period {index}", placeholder="e.g., Jan 2020 - Dec 2020", key=f"time_period_{index}")
-        job_description = st.text_area(f"Job Description {index}", placeholder="Describe your job responsibilities", key=f"job_description_{index}")
+        # Button to add new work experience
+        if st.button("Add Work Experience"):
+            st.session_state.work_experiences.append({
+                "job_title": "",
+                "company": "",
+                "period": "",
+                "location": "",
+                "description": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
+    
+    st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
 
-        # Button to remove the specific work experience
-        if st.button(f"Remove Work Experience {index}", key=f"remove_{index}"):
-            st.session_state.work_experiences.pop(index - 1)  # Remove entry from the list
-            st.experimental_rerun()  # Rerun the app to refresh the display
+    # Create a collapsible section for Education
+    with st.expander("Add Education", expanded=True):
+        for index, education in enumerate(st.session_state.education_entries):
+            # Correct the heading to reflect "Education" rather than "Work Experience"
+            st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
 
-        return (role_title, location, time_period, job_description)
+            with col1:
+                # Display labels in white and input fields below
+                st.markdown('<span style="color: white;">University</span>', unsafe_allow_html=True)
+                education['university'] = st.text_input("", education.get('university', ''), key=f"university_{index}")
 
-    # Display all work experiences from session state
-    for i in range(len(st.session_state.work_experiences)):
-        display_work_experience(i + 1)  # Display existing work experiences
+                st.markdown('<span style="color: white;">Degree</span>', unsafe_allow_html=True)
+                education['degree'] = st.text_input("", education.get('degree', ''), key=f"degree_{index}")
 
-    # Button to add more work experience
-    if st.button("Add Work Experience"):
-        # Collect the data from the latest experience before adding a new one
-        new_index = len(st.session_state.work_experiences) + 1
-        new_experience = display_work_experience(new_index)  # Display new entry
-        st.session_state.work_experiences.append(new_experience)  # Append new experience
+            with col2:
+                st.markdown('<span style="color: white;">Graduation Year</span>', unsafe_allow_html=True)
+                education['graduation year'] = st.text_input("", education.get('graduation year', ''), key=f"graduation_year_{index}")
+
+                st.markdown('<span style="color: white;">Grade</span>', unsafe_allow_html=True)
+                education['grade'] = st.text_input("", education.get('grade', ''), key=f"grade_{index}")
+
+            # Add the Remove Education button
+            if st.button(f"Remove Education {index + 1}", key=f"remove_education_{index}"):
+                st.session_state.education_entries.pop(index)
+                st.experimental_rerun()  # Refresh the page to reflect the removal
+
+        # Button to add new education entry
+        if st.button("Add Education"):
+            st.session_state.education_entries.append({
+                "university": "",
+                "degree": "",
+                "graduation year": "",
+                "grade": ""
+            })
+            st.experimental_rerun()  # Refresh the page to reflect the addition
