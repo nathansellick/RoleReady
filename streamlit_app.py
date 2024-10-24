@@ -68,6 +68,7 @@ st.markdown(
 def styled_header(title, css_class="header"):
     st.markdown(f'<p class="{css_class}">{title}</p>', unsafe_allow_html=True)
 
+
 # Create multiple tabs
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help", "Resume develop"])
 
@@ -248,6 +249,5 @@ with tab2:
             new_index = len(st.session_state.certificates) + 1
             new_certificate = display_certificate(new_index)  # Display new entry
             st.session_state.certificates.append(new_certificate)  # Append new certificate
-with tab6:
-    print('Hello')
+
 
