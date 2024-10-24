@@ -68,6 +68,11 @@ st.markdown(
 def styled_header(title, css_class="header"):
     st.markdown(f'<p class="{css_class}">{title}</p>', unsafe_allow_html=True)
 
+# Initialize session state for work experiences if not already initialized
+if 'work_experiences' not in st.session_state:
+    st.session_state.work_experiences = []
+
+
 # Create multiple tabs
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help", "Resume develop"])
 
@@ -88,5 +93,33 @@ with tab1:
         st.success(f"Account created for {username}!")
 
 with tab2:
+    st.header("Work Experience")
     
+    # Create a collapsible section for Work Experience
+    with st.expander("Add Work Experience", expanded=True):
+        for index, experience in enumerate(st.session_state.work_experiences):
+            st.subheader(f"Work Experience {index + 1}")
+            col1, col2 = st.columns(2)
+            with col1:
+                experience['job_title'] = st.text_input("Job Title", experience['job_title'], key=f"job_title_{index}")
+                experience['company'] = st.text_input("Company", experience['company'], key=f"company_{index}")
+                experience['period'] = st.text_input("Period", experience['period'], key=f"period_{index}")
+                experience['location'] = st.text_input("Location", experience['location'], key=f"location_{index}")
+            with col2:
+                experience['description'] = st.text_area("Job Description", experience['description'], key=f"description_{index}")
+
+            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_{index}"):
+                st.session_state.work_experiences.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
+
+        # Button to add new work experience
+        if st.button("Add Work Experience"):
+            st.session_state.work_experiences.append({
+                "job_title": "",
+                "company": "",
+                "period": "",
+                "location": "",
+                "description": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
 
