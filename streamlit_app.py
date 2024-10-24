@@ -1,5 +1,6 @@
-# Import packages
 # pip install streamlit_tags
+
+# Import packages
 import streamlit as st
 from PIL import Image
 from streamlit_tags import st_tags
@@ -82,7 +83,7 @@ if 'skills' not in st.session_state:
 
 
 # Create multiple tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help", "Resume develop"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help"])
 
 with tab1:
     # Center-align the image with Streamlit layout
@@ -204,3 +205,56 @@ with tab2:
             st.markdown('<h4 style="color: white;">Your Skills:</h4>', unsafe_allow_html=True)
             for skill in st.session_state.skills:
                 st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
+
+with tab3:
+    st.markdown('<h2 style="color: white;">Matched Job</h2>', unsafe_allow_html=True)
+
+    # Simulated scraped data (replace with your actual scraped data)
+    job_data = {
+        "job_title": "Software Engineer",
+        "company": "Tech Innovations Inc.",
+        "location": "New York, NY",
+        "job_description": """
+            As a Software Engineer at Tech Innovations Inc., you will be responsible for developing and maintaining high-quality software solutions. 
+            Your key responsibilities will include:
+            - Collaborating with cross-functional teams to define, design, and ship new features.
+            - Writing clean, maintainable code following best practices.
+            - Participating in code reviews and providing constructive feedback.
+        """,
+        "requirements": [
+            "Bachelor's degree in Computer Science or a related field.",
+            "Proficiency in Python, JavaScript, or similar programming languages.",
+            "Strong problem-solving skills and attention to detail."
+        ],
+        "salary": "$80,000 - $100,000 per year",
+        "application_link": "http://example.com/apply"
+    }
+
+    # Create a tab for Job Details
+    with st.expander("Job Details", expanded=True):
+      
+
+        # Job title and company information
+        st.markdown(f"<h2 style='color: white;'>{job_data['job_title']}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h4 style='color: white;'>{job_data['company']} - {job_data['location']}</h4>", unsafe_allow_html=True)
+
+        # Job description
+        st.markdown("<h3 style='color: white;'>Job Description</h3>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_data['job_description']}</p>", unsafe_allow_html=True)
+
+        # Requirements
+        st.markdown("<h3 style='color: white;'>Requirements</h3>", unsafe_allow_html=True)
+        st.markdown(
+            "<ul style='color: white;'>" +
+            "".join(f"<li>{req}</li>" for req in job_data['requirements']) +
+            "</ul>",
+            unsafe_allow_html=True
+        )
+
+        # Salary
+        st.markdown("<h3 style='color: white;'>Salary</h3>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_data['salary']}</p>", unsafe_allow_html=True)
+
+        # Application link
+        st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
+        st.markdown(f"<a href='{job_data['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
