@@ -93,12 +93,12 @@ with tab1:
         st.success(f"Account created for {username}!")
 
 with tab2:
-    st.header("Work Experience")
+    st.markdown('<h2 style="color: white;">Work Experience</h2>', unsafe_allow_html=True)
     
     # Create a collapsible section for Work Experience
     with st.expander("Add Work Experience", expanded=True):
         for index, experience in enumerate(st.session_state.work_experiences):
-            st.subheader(f"Work Experience {index + 1}")
+            st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
             with col1:
                 experience['job_title'] = st.text_input("Job Title", experience['job_title'], key=f"job_title_{index}")
