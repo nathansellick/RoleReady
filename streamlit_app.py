@@ -80,6 +80,10 @@ if 'education_entries' not in st.session_state:
 if 'projects' not in st.session_state:
     st.session_state.projects = []
 
+# Initialize session state for projects if not already initialized
+if 'certifications' not in st.session_state:
+    st.session_state.certifications = []
+
 # Initialize session state for skills if not already initialized
 if 'skills' not in st.session_state:
     st.session_state.skills = []
@@ -215,6 +219,33 @@ with tab2:
                 "project_description": ""
             })
             st.experimental_rerun()  # Refresh the app to reflect the addition
+
+    
+    st.markdown('<h2 style="color: white;">Certifications</h2>', unsafe_allow_html=True)
+
+    with st.expander("Add Certifications", expanded=True):
+
+        for index, certification in enumerate(st.session_state.certifications):
+            # Heading for each project e.g. project 1, project 2
+            st.markdown(f'<h4 style="color: white;">Certification {index + 1}</h4>', unsafe_allow_html=True)
+
+            # Display labels in white and input fields below
+            st.markdown('<span style="color: white;">Certification Title</span>', unsafe_allow_html=True)
+            certification['certification_title'] = st.text_input("", certification.get('certification_title', ''), key=f"certification_title_{index}")
+
+
+            if st.button(f"Remove Certification {index + 1}", key=f"remove_certification{index}"):
+                st.session_state.certifications.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
+
+        # Button to add new project
+        if st.button("Add Certication"):
+            st.session_state.certifications.append({
+                "certification_title": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
+
+
     
     
 
