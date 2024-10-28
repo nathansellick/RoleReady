@@ -122,16 +122,16 @@ with tab2:
                 experience['company'] = st.text_input("", experience['company'], key=f"company_{index}")
                 
                 st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
-                experience['period'] = st.text_input("", experience['period'], key=f"period_{index}")
+                experience['work_period'] = st.text_input("", experience['work_period'], key=f"work_period_{index}")
                 
                 st.markdown('<span style="color: white;">Location</span>', unsafe_allow_html=True)
                 experience['location'] = st.text_input("", experience['location'], key=f"location_{index}")
                 
             with col2:
                 st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-                experience['description'] = st.text_area("", experience['description'], key=f"description_{index}")
+                experience['job_description'] = st.text_area("", experience['job_description'], key=f"job_description_{index}")
 
-            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_{index}"):
+            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_exp_{index}"):
                 st.session_state.work_experiences.pop(index)
                 st.experimental_rerun()  # Refresh the app to reflect the removal
 
@@ -140,9 +140,9 @@ with tab2:
             st.session_state.work_experiences.append({
                 "job_title": "",
                 "company": "",
-                "period": "",
+                "work_period": "",
                 "location": "",
-                "description": ""
+                "job_description": ""
             })
             st.experimental_rerun()  # Refresh the app to reflect the addition
     
@@ -198,12 +198,12 @@ with tab2:
             project['project_title'] = st.text_input("", project.get('project_title', ''), key=f"project_title_{index}")
 
             st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
-            project['period'] = st.text_input("", project.get('period', ''), key=f"period_{index}")
+            project['project_period'] = st.text_input("", project.get('project_period', ''), key=f"project_period_{index}")
 
             st.markdown('<span style="color: white;">Desciption</span>', unsafe_allow_html=True)
-            project['description'] = st.text_input("", project.get('description', ''), key=f"description_{index}")
+            project['project_description'] = st.text_input("", project.get('project_description', ''), key=f"project_description_{index}")
 
-            if st.button(f"Remove Project {index + 1}", key=f"remove_{index}"):
+            if st.button(f"Remove Project {index + 1}", key=f"remove_project{index}"):
                 st.session_state.projects.pop(index)
                 st.experimental_rerun()  # Refresh the app to reflect the removal
 
@@ -211,8 +211,8 @@ with tab2:
         if st.button("Add Project"):
             st.session_state.projects.append({
                 "project_title": "",
-                "period": "",
-                "description": ""
+                "project_period": "",
+                "project_description": ""
             })
             st.experimental_rerun()  # Refresh the app to reflect the addition
     
