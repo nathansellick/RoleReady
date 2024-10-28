@@ -76,13 +76,17 @@ if 'work_experiences' not in st.session_state:
 if 'education_entries' not in st.session_state:
     st.session_state.education_entries = []
 
+# Initialize session state for projects if not already initialized
+if 'projects' not in st.session_state:
+    st.session_state.projects = []
+
 # Initialize session state for skills if not already initialized
 if 'skills' not in st.session_state:
     st.session_state.skills = []
 
 
 
-# Create multiple tabs
+# Create multiple tabs for application
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help"])
 
 with tab1:
@@ -147,7 +151,7 @@ with tab2:
     # Create a collapsible section for Education
     with st.expander("Add Education", expanded=True):
         for index, education in enumerate(st.session_state.education_entries):
-            # Correct the heading to reflect "Education" rather than "Work Experience"
+           
             st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
 
@@ -181,11 +185,44 @@ with tab2:
             })
             st.experimental_rerun()  # Refresh the page to reflect the addition
 
+    st.markdown('<h2 style="color: white;">Projects</h2>', unsafe_allow_html=True)
+
+    with st.expander("Add Projects", expanded=True):
+
+        for index, project in enumerate(st.session_state.projects):
+            # Heading for each project e.g. project 1, project 2
+            st.markdown(f'<h4 style="color: white;">Project {index + 1}</h4>', unsafe_allow_html=True)
+
+            # Display labels in white and input fields below
+            st.markdown('<span style="color: white;">Project Title</span>', unsafe_allow_html=True)
+            project['project_title'] = st.text_input("", project.get('project_title', ''), key=f"project_title_{index}")
+
+            st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
+            project['period'] = st.text_input("", project.get('period', ''), key=f"period_{index}")
+
+            st.markdown('<span style="color: white;">Desciption</span>', unsafe_allow_html=True)
+            project['description'] = st.text_input("", project.get('description', ''), key=f"description_{index}")
+
+            if st.button(f"Remove Project {index + 1}", key=f"remove_{index}"):
+                st.session_state.projects.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
+
+        # Button to add new project
+        if st.button("Add Project"):
+            st.session_state.projects.append({
+                "project_title": "",
+                "period": "",
+                "description": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
+    
+    
+
+
     st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
 
     with st.expander("Add Skills", expanded=True):
     
-        st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
 
         # Use st_tags to create an input field for adding skills
         skills = st_tags(
