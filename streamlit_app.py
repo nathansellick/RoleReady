@@ -1,6 +1,9 @@
+# pip install streamlit_tags
+
 # Import packages
 import streamlit as st
 from PIL import Image
+from streamlit_tags import st_tags
 
 # CSS for dark blue background and tab styling
 st.markdown(
@@ -73,10 +76,14 @@ if 'work_experiences' not in st.session_state:
 if 'education_entries' not in st.session_state:
     st.session_state.education_entries = []
 
+# Initialize session state for skills if not already initialized
+if 'skills' not in st.session_state:
+    st.session_state.skills = []
+
 
 
 # Create multiple tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help", "Resume develop"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help"])
 
 with tab1:
     # Center-align the image with Streamlit layout
@@ -173,3 +180,81 @@ with tab2:
                 "grade": ""
             })
             st.experimental_rerun()  # Refresh the page to reflect the addition
+
+    st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
+
+    with st.expander("Add Skills", expanded=True):
+    
+        st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
+
+        # Use st_tags to create an input field for adding skills
+        skills = st_tags(
+            label='',
+            text='Add a skill...',
+            value=st.session_state.skills,  # Pre-populate with existing skills
+            suggestions=[],  # You can add skill suggestions if needed
+            maxtags=10,  # Limit to 10 skills (optional)
+            key='skills_input'
+        )
+
+        # Store the skills back into the session state after modification
+        st.session_state.skills = skills
+
+        # Display the skills in a tag format
+        if st.session_state.skills:
+            st.markdown('<h4 style="color: white;">Your Skills:</h4>', unsafe_allow_html=True)
+            for skill in st.session_state.skills:
+                st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
+
+with tab3:
+    st.markdown('<h2 style="color: white;">Matched Job</h2>', unsafe_allow_html=True)
+
+    # Simulated scraped data (replace with your actual scraped data)
+    job_data = {
+        "job_title": "Software Engineer",
+        "company": "Tech Innovations Inc.",
+        "location": "New York, NY",
+        "job_description": """
+            As a Software Engineer at Tech Innovations Inc., you will be responsible for developing and maintaining high-quality software solutions. 
+            Your key responsibilities will include:
+            - Collaborating with cross-functional teams to define, design, and ship new features.
+            - Writing clean, maintainable code following best practices.
+            - Participating in code reviews and providing constructive feedback.
+        """,
+        "requirements": [
+            "Bachelor's degree in Computer Science or a related field.",
+            "Proficiency in Python, JavaScript, or similar programming languages.",
+            "Strong problem-solving skills and attention to detail."
+        ],
+        "salary": "$80,000 - $100,000 per year",
+        "application_link": "http://example.com/apply"
+    }
+
+    # Create a tab for Job Details
+    with st.expander("Job Details", expanded=True):
+      
+
+        # Job title and company information
+        st.markdown(f"<h2 style='color: white;'>{job_data['job_title']}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h4 style='color: white;'>{job_data['company']} - {job_data['location']}</h4>", unsafe_allow_html=True)
+
+        # Job description
+        st.markdown("<h3 style='color: white;'>Job Description</h3>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_data['job_description']}</p>", unsafe_allow_html=True)
+
+        # Requirements
+        st.markdown("<h3 style='color: white;'>Requirements</h3>", unsafe_allow_html=True)
+        st.markdown(
+            "<ul style='color: white;'>" +
+            "".join(f"<li>{req}</li>" for req in job_data['requirements']) +
+            "</ul>",
+            unsafe_allow_html=True
+        )
+
+        # Salary
+        st.markdown("<h3 style='color: white;'>Salary</h3>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_data['salary']}</p>", unsafe_allow_html=True)
+
+        # Application link
+        st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
+        st.markdown(f"<a href='{job_data['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
