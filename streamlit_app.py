@@ -326,3 +326,14 @@ with tab3:
         # Application link
         st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
         st.markdown(f"<a href='{job_data['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+
+     # Buttons with icons for additional functionality
+    st.markdown("---")  # Divider line for visual separation
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.button("🤖 Generate CV")
+    with col2:
+        st.button("💾 Save Job")
+    with col3:
+        st.button("➡️ Next Job")
