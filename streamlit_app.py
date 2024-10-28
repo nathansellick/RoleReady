@@ -76,13 +76,21 @@ if 'work_experiences' not in st.session_state:
 if 'education_entries' not in st.session_state:
     st.session_state.education_entries = []
 
+# Initialize session state for projects if not already initialized
+if 'projects' not in st.session_state:
+    st.session_state.projects = []
+
+# Initialize session state for projects if not already initialized
+if 'certifications' not in st.session_state:
+    st.session_state.certifications = []
+
 # Initialize session state for skills if not already initialized
 if 'skills' not in st.session_state:
     st.session_state.skills = []
 
 
 
-# Create multiple tabs
+# Create multiple tabs for application
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help"])
 
 with tab1:
@@ -118,16 +126,16 @@ with tab2:
                 experience['company'] = st.text_input("", experience['company'], key=f"company_{index}")
                 
                 st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
-                experience['period'] = st.text_input("", experience['period'], key=f"period_{index}")
+                experience['work_period'] = st.text_input("", experience['work_period'], key=f"work_period_{index}")
                 
                 st.markdown('<span style="color: white;">Location</span>', unsafe_allow_html=True)
                 experience['location'] = st.text_input("", experience['location'], key=f"location_{index}")
                 
             with col2:
                 st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-                experience['description'] = st.text_area("", experience['description'], key=f"description_{index}")
+                experience['job_description'] = st.text_area("", experience['job_description'], key=f"job_description_{index}")
 
-            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_{index}"):
+            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_exp_{index}"):
                 st.session_state.work_experiences.pop(index)
                 st.experimental_rerun()  # Refresh the app to reflect the removal
 
@@ -136,9 +144,9 @@ with tab2:
             st.session_state.work_experiences.append({
                 "job_title": "",
                 "company": "",
-                "period": "",
+                "work_period": "",
                 "location": "",
-                "description": ""
+                "job_description": ""
             })
             st.experimental_rerun()  # Refresh the app to reflect the addition
     
@@ -147,7 +155,7 @@ with tab2:
     # Create a collapsible section for Education
     with st.expander("Add Education", expanded=True):
         for index, education in enumerate(st.session_state.education_entries):
-            # Correct the heading to reflect "Education" rather than "Work Experience"
+           
             st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
 
@@ -181,11 +189,71 @@ with tab2:
             })
             st.experimental_rerun()  # Refresh the page to reflect the addition
 
+    st.markdown('<h2 style="color: white;">Projects</h2>', unsafe_allow_html=True)
+
+    with st.expander("Add Projects", expanded=True):
+
+        for index, project in enumerate(st.session_state.projects):
+            # Heading for each project e.g. project 1, project 2
+            st.markdown(f'<h4 style="color: white;">Project {index + 1}</h4>', unsafe_allow_html=True)
+
+            # Display labels in white and input fields below
+            st.markdown('<span style="color: white;">Project Title</span>', unsafe_allow_html=True)
+            project['project_title'] = st.text_input("", project.get('project_title', ''), key=f"project_title_{index}")
+
+            st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
+            project['project_period'] = st.text_input("", project.get('project_period', ''), key=f"project_period_{index}")
+
+            st.markdown('<span style="color: white;">Desciption</span>', unsafe_allow_html=True)
+            project['project_description'] = st.text_input("", project.get('project_description', ''), key=f"project_description_{index}")
+
+            if st.button(f"Remove Project {index + 1}", key=f"remove_project{index}"):
+                st.session_state.projects.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
+
+        # Button to add new project
+        if st.button("Add Project"):
+            st.session_state.projects.append({
+                "project_title": "",
+                "project_period": "",
+                "project_description": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
+
+    
+    st.markdown('<h2 style="color: white;">Certifications</h2>', unsafe_allow_html=True)
+
+    with st.expander("Add Certifications", expanded=True):
+
+        for index, certification in enumerate(st.session_state.certifications):
+            # Heading for each project e.g. project 1, project 2
+            st.markdown(f'<h4 style="color: white;">Certification {index + 1}</h4>', unsafe_allow_html=True)
+
+            # Display labels in white and input fields below
+            st.markdown('<span style="color: white;">Certification Title</span>', unsafe_allow_html=True)
+            certification['certification_title'] = st.text_input("", certification.get('certification_title', ''), key=f"certification_title_{index}")
+
+
+            if st.button(f"Remove Certification {index + 1}", key=f"remove_certification{index}"):
+                st.session_state.certifications.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
+
+        # Button to add new project
+        if st.button("Add Certication"):
+            st.session_state.certifications.append({
+                "certification_title": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
+
+
+    
+    
+
+
     st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
 
     with st.expander("Add Skills", expanded=True):
     
-        st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
 
         # Use st_tags to create an input field for adding skills
         skills = st_tags(
@@ -258,3 +326,14 @@ with tab3:
         # Application link
         st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
         st.markdown(f"<a href='{job_data['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+
+     # Buttons with icons for additional functionality
+    st.markdown("---")  # Divider line for visual separation
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.button("🤖 Generate CV")
+    with col2:
+        st.button("💾 Save Job")
+    with col3:
+        st.button("➡️ Next Job")
