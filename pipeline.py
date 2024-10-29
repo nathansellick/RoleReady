@@ -12,7 +12,7 @@ chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     
 # Instantiate the driver
 driver = uc.Chrome(options=chrome_options)
-load_and_search(driver)
+load_and_search(driver, job_title_search, location_search)
 
 # Find the job information
 job_dic = save_job_information(driver)

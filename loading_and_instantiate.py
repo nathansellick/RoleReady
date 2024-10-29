@@ -22,27 +22,27 @@ def reject_cookies(driver):
     driver.find_element(By.XPATH, reject_cookie_button_xpath).click()
     return
 
-def search_job(driver):
+def search_job(driver, job_title_search):
     """
     This function adds job name into the indeed job search box.
     """
     search_bar_xpath = '/html/body/div[1]/div[1]/div/span/div[4]/div[1]/div/div/div/div/form/div/div[1]/div[1]/div/div/span/input'
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, search_bar_xpath))) # Page Loads
     search_box = driver.find_element(By.XPATH, search_bar_xpath)
-    search_box.send_keys('data analyst')  # Change this dynamically later
+    search_box.send_keys(job_title_search)  # Change this dynamically later
     return search_box  # Returning search_box so it can be used later
 
-def search_location(driver):
+def search_location(driver,  location_search):
     """
     This function adds location to the indeed location search box.
     """
     location_input_bar_xpath = '/html/body/div[1]/div[1]/div/span/div[4]/div[1]/div/div/div/div/form/div/div[1]/div[3]/div/div/span/input'
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, location_input_bar_xpath))) # Page Loads
     location_input_bar = driver.find_element(By.XPATH, location_input_bar_xpath)
-    location_input_bar.send_keys('London')  # Change this dynamically later
+    location_input_bar.send_keys(location_search)  # Change this dynamically later
     return
 
-def load_and_search(driver):
+def load_and_search(driver, job_title_search, location_search):
     """
     This function instantiates the web driver, loads the Indeed webpage, rejects the cookies, and searches the job and location.
     """    
@@ -52,8 +52,8 @@ def load_and_search(driver):
     
     # Reject cookies and perform job search
     reject_cookies(driver)
-    search_box = search_job(driver)  # Capture the search_box element
-    search_location(driver)
+    search_box = search_job(driver, job_title_search)  # Capture the search_box element
+    search_location(driver, location_search)
     
     # Simulate pressing "Enter" to submit the job search
     search_box.send_keys(Keys.ENTER)

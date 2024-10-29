@@ -1,9 +1,25 @@
 # pip install streamlit_tags
 
+
+
 # Import packages
+from find_core_job_details import *
+import json
+import subprocess
 import streamlit as st
 from PIL import Image
 from streamlit_tags import st_tags
+
+# Setup Chrome options to disable popups and redirections
+chrome_options = Options()
+chrome_options.add_argument("--disable-popup-blocking")
+chrome_options.add_argument("--disable-notifications")
+chrome_options.add_argument("--disable-extensions")
+chrome_options.add_argument("--disable-infobars")
+chrome_options.add_argument("--disable-web-security")
+chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
+
 
 # CSS for dark blue background and tab styling
 st.markdown(
@@ -280,57 +296,57 @@ with tab3:
     job_title_search = st.text_input("Job Title", placeholder="Enter job title")
     location_search = st.text_input("Location", placeholder="Enter location")
 
+    if st.button("Job Search"):
+        # Instantiate the driver
+        driver = uc.Chrome(options=chrome_options)
+
+        load_and_search(driver, job_title_search, location_search)
+
+        # Find the job information
+        job_dic = save_job_information(driver)
+
+        with open("job_description.json", "w") as outfile: 
+            json.dump(job_dic, outfile)
+        
+
+
+    
+
     st.markdown('<h2 style="color: white;">Matched Job</h2>', unsafe_allow_html=True)
 
     # Simulated scraped data (replace with your actual scraped data)
-    job_data = {
-        "job_title": "Software Engineer",
-        "company": "Tech Innovations Inc.",
-        "location": "New York, NY",
-        "job_description": """
-            As a Software Engineer at Tech Innovations Inc., you will be responsible for developing and maintaining high-quality software solutions. 
-            Your key responsibilities will include:
-            - Collaborating with cross-functional teams to define, design, and ship new features.
-            - Writing clean, maintainable code following best practices.
-            - Participating in code reviews and providing constructive feedback.
-        """,
-        "requirements": [
-            "Bachelor's degree in Computer Science or a related field.",
-            "Proficiency in Python, JavaScript, or similar programming languages.",
-            "Strong problem-solving skills and attention to detail."
-        ],
-        "salary": "$80,000 - $100,000 per year",
-        "application_link": "http://example.com/apply"
-    }
+    #job_data = job_dic
+    
+
 
     # Create a tab for Job Details
     with st.expander("Job Details", expanded=True):
       
 
         # Job title and company information
-        st.markdown(f"<h2 style='color: white;'>{job_data['job_title']}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h4 style='color: white;'>{job_data['company']} - {job_data['location']}</h4>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color: white;'>{job_dic['job_title']}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h4 style='color: white;'>{job_dic['company']} - {job_dic['location']}</h4>", unsafe_allow_html=True)
 
         # Job description
         st.markdown("<h3 style='color: white;'>Job Description</h3>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: white;'>{job_data['job_description']}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
 
-        # Requirements
-        st.markdown("<h3 style='color: white;'>Requirements</h3>", unsafe_allow_html=True)
+        # Employment type
+        st.markdown("<h3 style='color: white;'>Employment Type</h3>", unsafe_allow_html=True)
         st.markdown(
             "<ul style='color: white;'>" +
-            "".join(f"<li>{req}</li>" for req in job_data['requirements']) +
+            "".join(f"<li>{req}</li>" for req in job_dic['employment_type']) +
             "</ul>",
             unsafe_allow_html=True
         )
 
         # Salary
         st.markdown("<h3 style='color: white;'>Salary</h3>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: white;'>{job_data['salary']}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_dic['salary']}</p>", unsafe_allow_html=True)
 
         # Application link
         st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
-        st.markdown(f"<a href='{job_data['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+        st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
 
      # Buttons with icons for additional functionality
     st.markdown("---")  # Divider line for visual separation
