@@ -1,6 +1,9 @@
+# pip install streamlit_tags
+
 # Import packages
 import streamlit as st
 from PIL import Image
+from streamlit_tags import st_tags
 
 # CSS for dark blue background and tab styling
 st.markdown(
@@ -65,12 +68,30 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-def styled_header(title, css_class="header"):
-    st.markdown(f'<p class="{css_class}">{title}</p>', unsafe_allow_html=True)
+# Initialize session state for work experiences if not already initialized
+if 'work_experiences' not in st.session_state:
+    st.session_state.work_experiences = []
+
+# Initialize session state for education if not already initialized
+if 'education_entries' not in st.session_state:
+    st.session_state.education_entries = []
+
+# Initialize session state for projects if not already initialized
+if 'projects' not in st.session_state:
+    st.session_state.projects = []
+
+# Initialize session state for projects if not already initialized
+if 'certifications' not in st.session_state:
+    st.session_state.certifications = []
+
+# Initialize session state for skills if not already initialized
+if 'skills' not in st.session_state:
+    st.session_state.skills = []
 
 
-# Create multiple tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help", "Resume develop"])
+
+# Create multiple tabs for application
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help"])
 
 with tab1:
     # Center-align the image with Streamlit layout
@@ -89,165 +110,235 @@ with tab1:
         st.success(f"Account created for {username}!")
 
 with tab2:
-    # Create two columns, one for Work Experience and the other for Education
-    col1, col2, col3, col4, col5 = st.columns(5)
+    st.markdown('<h2 style="color: white;">Work Experience</h2>', unsafe_allow_html=True)
+    
+    # Create a collapsible section for Work Experience
+    with st.expander("Add Work Experience", expanded=True):
+        for index, experience in enumerate(st.session_state.work_experiences):
+            st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
+            with col1:
+                # Display labels in white and input fields below
+                st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
+                experience['job_title'] = st.text_input("", experience['job_title'], key=f"job_title_{index}")
+                
+                st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
+                experience['company'] = st.text_input("", experience['company'], key=f"company_{index}")
+                
+                st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
+                experience['work_period'] = st.text_input("", experience['work_period'], key=f"work_period_{index}")
+                
+                st.markdown('<span style="color: white;">Location</span>', unsafe_allow_html=True)
+                experience['location'] = st.text_input("", experience['location'], key=f"location_{index}")
+                
+            with col2:
+                st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
+                experience['job_description'] = st.text_area("", experience['job_description'], key=f"job_description_{index}")
 
-    # Work Experience Section (in first column)
-    with col1:
-        st.markdown('<p class="work-experience-header">Work Experience</p>', unsafe_allow_html=True)
+            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_exp_{index}"):
+                st.session_state.work_experiences.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
 
-        # Initialize session state for work experiences if it doesn't exist
-        if 'work_experiences' not in st.session_state:
-            st.session_state.work_experiences = []  # List to hold work experience data
-
-        # Function to display work experience fields and remove button
-        def display_work_experience(index):
-            st.markdown(f'<p class="subheader">Work Experience {index}</p>', unsafe_allow_html=True)
-            role_title = st.text_input(f"Role Title {index}", placeholder="Enter your role title", key=f"role_title_{index}")
-            location = st.text_input(f"Location {index}", placeholder="Enter your location", key=f"location_{index}")
-            time_period = st.text_input(f"Time Period {index}", placeholder="e.g., Jan 2020 - Dec 2020", key=f"time_period_{index}")
-            job_description = st.text_area(f"Job Description {index}", placeholder="Describe your job responsibilities", key=f"job_description_{index}")
-
-            # Button to remove the specific work experience
-            if st.button(f"Remove Work Experience {index}", key=f"remove_{index}"):
-                st.session_state.work_experiences.pop(index - 1)  # Remove entry from the list
-                st.experimental_rerun()  # Rerun the app to refresh the display
-
-            return (role_title, location, time_period, job_description)
-
-        # Display all work experiences from session state
-        for i in range(len(st.session_state.work_experiences)):
-            display_work_experience(i + 1)  # Display existing work experiences
-
-        # Button to add more work experience
+        # Button to add new work experience
         if st.button("Add Work Experience"):
-            new_index = len(st.session_state.work_experiences) + 1
-            new_experience = display_work_experience(new_index)  # Display new entry
-            st.session_state.work_experiences.append(new_experience)  # Append new experience
+            st.session_state.work_experiences.append({
+                "job_title": "",
+                "company": "",
+                "work_period": "",
+                "location": "",
+                "job_description": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
+    
+    st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
 
-    # Education Section (in second column)
-    with col2:
-        st.markdown('<p class="education-header">Education</p>', unsafe_allow_html=True)
+    # Create a collapsible section for Education
+    with st.expander("Add Education", expanded=True):
+        for index, education in enumerate(st.session_state.education_entries):
+           
+            st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
 
-        # Initialize session state for education if it doesn't exist
-        if 'education_entries' not in st.session_state:
-            st.session_state.education_entries = []  # List to hold education entries
+            with col1:
+                # Display labels in white and input fields below
+                st.markdown('<span style="color: white;">University</span>', unsafe_allow_html=True)
+                education['university'] = st.text_input("", education.get('university', ''), key=f"university_{index}")
 
-        # Function to display education fields and remove button
-        def display_education(index):
-            st.markdown(f'<p class="subheader">Education {index}</p>', unsafe_allow_html=True)
-            degree = st.text_input(f"Degree {index}", placeholder="Enter your degree", key=f"degree_{index}")
-            institution = st.text_input(f"Institution {index}", placeholder="Enter your institution", key=f"institution_{index}")
-            graduation_year = st.text_input(f"Graduation Year {index}", placeholder="Enter your graduation year", key=f"graduation_year_{index}")
+                st.markdown('<span style="color: white;">Degree</span>', unsafe_allow_html=True)
+                education['degree'] = st.text_input("", education.get('degree', ''), key=f"degree_{index}")
 
-            # Button to remove the specific education entry
-            if st.button(f"Remove Education {index}", key=f"remove_education_{index}"):
-                st.session_state.education_entries.pop(index - 1)  # Remove entry from the list
-                st.experimental_rerun()  # Rerun the app to refresh the display
+            with col2:
+                st.markdown('<span style="color: white;">Graduation Year</span>', unsafe_allow_html=True)
+                education['graduation year'] = st.text_input("", education.get('graduation year', ''), key=f"graduation_year_{index}")
 
-            return (degree, institution, graduation_year)
+                st.markdown('<span style="color: white;">Grade</span>', unsafe_allow_html=True)
+                education['grade'] = st.text_input("", education.get('grade', ''), key=f"grade_{index}")
 
-        # Display all education entries from session state
-        for i in range(len(st.session_state.education_entries)):
-            display_education(i + 1)  # Display existing education entries
+            # Add the Remove Education button
+            if st.button(f"Remove Education {index + 1}", key=f"remove_education_{index}"):
+                st.session_state.education_entries.pop(index)
+                st.experimental_rerun()  # Refresh the page to reflect the removal
 
-        # Button to add more education entries
+        # Button to add new education entry
         if st.button("Add Education"):
-            new_index = len(st.session_state.education_entries) + 1
-            new_education = display_education(new_index)  # Display new entry
-            st.session_state.education_entries.append(new_education)  # Append new education
+            st.session_state.education_entries.append({
+                "university": "",
+                "degree": "",
+                "graduation year": "",
+                "grade": ""
+            })
+            st.experimental_rerun()  # Refresh the page to reflect the addition
 
-   # Skills Section (in the third column)
-    with col3:
-        st.markdown('<p class="skills-header">Skills</p>', unsafe_allow_html=True)
+    st.markdown('<h2 style="color: white;">Projects</h2>', unsafe_allow_html=True)
 
-        # Initialize session state for skills if it doesn't exist
-        if 'skills' not in st.session_state:
-            st.session_state.skills = []  # List to hold skills
+    with st.expander("Add Projects", expanded=True):
 
-        # Function to display skill fields and remove button
-        def display_skill(index):
-            st.markdown(f'<p class="subheader">Skill {index}</p>', unsafe_allow_html=True)
-            skill_name = st.text_input(f"Skill {index}", placeholder="Enter your skill", key=f"skill_{index}")
+        for index, project in enumerate(st.session_state.projects):
+            # Heading for each project e.g. project 1, project 2
+            st.markdown(f'<h4 style="color: white;">Project {index + 1}</h4>', unsafe_allow_html=True)
 
-            # Button to remove the specific skill
-            if st.button(f"Remove Skill {index}", key=f"remove_skill_{index}"):
-                st.session_state.skills.pop(index - 1)  # Remove entry from the list
-                st.experimental_rerun()  # Rerun the app to refresh the display
+            # Display labels in white and input fields below
+            st.markdown('<span style="color: white;">Project Title</span>', unsafe_allow_html=True)
+            project['project_title'] = st.text_input("", project.get('project_title', ''), key=f"project_title_{index}")
 
-            return skill_name
+            st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
+            project['project_period'] = st.text_input("", project.get('project_period', ''), key=f"project_period_{index}")
 
-        # Display all skills from session state
-        for i in range(len(st.session_state.skills)):
-            display_skill(i + 1)  # Display existing skills
+            st.markdown('<span style="color: white;">Desciption</span>', unsafe_allow_html=True)
+            project['project_description'] = st.text_input("", project.get('project_description', ''), key=f"project_description_{index}")
 
-        # Button to add more skills
-        if st.button("Add Skill"):
-            new_index = len(st.session_state.skills) + 1
-            new_skill = display_skill(new_index)  # Display new entry
-            st.session_state.skills.append(new_skill)  # Append new skill
+            if st.button(f"Remove Project {index + 1}", key=f"remove_project{index}"):
+                st.session_state.projects.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
 
-    # Projects Section (in the fourth column)
-    with col4:
-        st.markdown('<p class="projects-header">Projects</p>', unsafe_allow_html=True)
-
-        # Initialize session state for projects if it doesn't exist
-        if 'projects' not in st.session_state:
-            st.session_state.projects = []  # List to hold project entries
-
-        # Function to display project fields and remove button
-        def display_project(index):
-            st.markdown(f'<p class="subheader">Project {index}</p>', unsafe_allow_html=True)
-            project_title = st.text_input(f"Project Title {index}", placeholder="Enter your project title", key=f"project_title_{index}")
-            project_description = st.text_area(f"Project Description {index}", placeholder="Describe your project", key=f"project_description_{index}")
-
-            # Button to remove the specific project entry
-            if st.button(f"Remove Project {index}", key=f"remove_project_{index}"):
-                st.session_state.projects.pop(index - 1)  # Remove entry from the list
-                st.experimental_rerun()  # Rerun the app to refresh the display
-
-            return (project_title, project_description)
-
-        # Display all projects from session state
-        for i in range(len(st.session_state.projects)):
-            display_project(i + 1)  # Display existing project entries
-
-        # Button to add more projects
+        # Button to add new project
         if st.button("Add Project"):
-            new_index = len(st.session_state.projects) + 1
-            new_project = display_project(new_index)  # Display new entry
-            st.session_state.projects.append(new_project)  # Append new project
+            st.session_state.projects.append({
+                "project_title": "",
+                "project_period": "",
+                "project_description": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
 
-    # Certificates Section (in the fifth column)
-    with col5:
-        st.markdown('<p class="certificates-header">Certificates</p>', unsafe_allow_html=True)
+    
+    st.markdown('<h2 style="color: white;">Certifications</h2>', unsafe_allow_html=True)
 
-        # Initialize session state for certificates if it doesn't exist
-        if 'certificates' not in st.session_state:
-            st.session_state.certificates = []  # List to hold certificate entries
+    with st.expander("Add Certifications", expanded=True):
 
-        # Function to display certificate fields and remove button
-        def display_certificate(index):
-            st.markdown(f'<p class="subheader">Certificate {index}</p>', unsafe_allow_html=True)
-            certificate_title = st.text_input(f"Certificate Title {index}", placeholder="Enter your certificate title", key=f"certificate_title_{index}")
-            institution = st.text_input(f"Institution {index}", placeholder="Enter the issuing institution", key=f"institution_cert_{index}")
-            year = st.text_input(f"Year {index}", placeholder="Enter the year received", key=f"year_cert_{index}")
+        for index, certification in enumerate(st.session_state.certifications):
+            # Heading for each project e.g. project 1, project 2
+            st.markdown(f'<h4 style="color: white;">Certification {index + 1}</h4>', unsafe_allow_html=True)
 
-            # Button to remove the specific certificate entry
-            if st.button(f"Remove Certificate {index}", key=f"remove_certificate_{index}"):
-                st.session_state.certificates.pop(index - 1)  # Remove entry from the list
-                st.experimental_rerun()  # Rerun the app to refresh the display
-
-            return (certificate_title, institution, year)
-
-        # Display all certificates from session state
-        for i in range(len(st.session_state.certificates)):
-            display_certificate(i + 1)  # Display existing certificate entries
-
-        # Button to add more certificates
-        if st.button("Add Certificate"):
-            new_index = len(st.session_state.certificates) + 1
-            new_certificate = display_certificate(new_index)  # Display new entry
-            st.session_state.certificates.append(new_certificate)  # Append new certificate
+            # Display labels in white and input fields below
+            st.markdown('<span style="color: white;">Certification Title</span>', unsafe_allow_html=True)
+            certification['certification_title'] = st.text_input("", certification.get('certification_title', ''), key=f"certification_title_{index}")
 
 
+            if st.button(f"Remove Certification {index + 1}", key=f"remove_certification{index}"):
+                st.session_state.certifications.pop(index)
+                st.experimental_rerun()  # Refresh the app to reflect the removal
+
+        # Button to add new project
+        if st.button("Add Certication"):
+            st.session_state.certifications.append({
+                "certification_title": ""
+            })
+            st.experimental_rerun()  # Refresh the app to reflect the addition
+
+
+    
+    
+
+
+    st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
+
+    with st.expander("Add Skills", expanded=True):
+    
+
+        # Use st_tags to create an input field for adding skills
+        skills = st_tags(
+            label='',
+            text='Add a skill...',
+            value=st.session_state.skills,  # Pre-populate with existing skills
+            suggestions=[],  # You can add skill suggestions if needed
+            maxtags=10,  # Limit to 10 skills (optional)
+            key='skills_input'
+        )
+
+        # Store the skills back into the session state after modification
+        st.session_state.skills = skills
+
+        # Display the skills in a tag format
+        if st.session_state.skills:
+            st.markdown('<h4 style="color: white;">Your Skills:</h4>', unsafe_allow_html=True)
+            for skill in st.session_state.skills:
+                st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
+
+with tab3:
+
+    st.markdown('<h2 style="color: white;">Job Search</h2>', unsafe_allow_html=True)
+    job_title_search = st.text_input("Job Title", placeholder="Enter job title")
+    location_search = st.text_input("Location", placeholder="Enter location")
+
+    st.markdown('<h2 style="color: white;">Matched Job</h2>', unsafe_allow_html=True)
+
+    # Simulated scraped data (replace with your actual scraped data)
+    job_data = {
+        "job_title": "Software Engineer",
+        "company": "Tech Innovations Inc.",
+        "location": "New York, NY",
+        "job_description": """
+            As a Software Engineer at Tech Innovations Inc., you will be responsible for developing and maintaining high-quality software solutions. 
+            Your key responsibilities will include:
+            - Collaborating with cross-functional teams to define, design, and ship new features.
+            - Writing clean, maintainable code following best practices.
+            - Participating in code reviews and providing constructive feedback.
+        """,
+        "requirements": [
+            "Bachelor's degree in Computer Science or a related field.",
+            "Proficiency in Python, JavaScript, or similar programming languages.",
+            "Strong problem-solving skills and attention to detail."
+        ],
+        "salary": "$80,000 - $100,000 per year",
+        "application_link": "http://example.com/apply"
+    }
+
+    # Create a tab for Job Details
+    with st.expander("Job Details", expanded=True):
+      
+
+        # Job title and company information
+        st.markdown(f"<h2 style='color: white;'>{job_data['job_title']}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h4 style='color: white;'>{job_data['company']} - {job_data['location']}</h4>", unsafe_allow_html=True)
+
+        # Job description
+        st.markdown("<h3 style='color: white;'>Job Description</h3>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_data['job_description']}</p>", unsafe_allow_html=True)
+
+        # Requirements
+        st.markdown("<h3 style='color: white;'>Requirements</h3>", unsafe_allow_html=True)
+        st.markdown(
+            "<ul style='color: white;'>" +
+            "".join(f"<li>{req}</li>" for req in job_data['requirements']) +
+            "</ul>",
+            unsafe_allow_html=True
+        )
+
+        # Salary
+        st.markdown("<h3 style='color: white;'>Salary</h3>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_data['salary']}</p>", unsafe_allow_html=True)
+
+        # Application link
+        st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
+        st.markdown(f"<a href='{job_data['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+
+     # Buttons with icons for additional functionality
+    st.markdown("---")  # Divider line for visual separation
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.button("🤖 Generate CV")
+    with col2:
+        st.button("💾 Save Job")
+    with col3:
+        st.button("➡️ Next Job")
