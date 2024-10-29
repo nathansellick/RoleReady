@@ -16,7 +16,9 @@ def reject_cookies(driver):
     """
     This function rejects cookies on the indeed webpage.
     """
+
     reject_cookie_button_xpath = '/html/body/div[2]/div[2]/div/div[1]/div/div[2]/div/button[2]'
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, reject_cookie_button_xpath))) # Page Loads
     driver.find_element(By.XPATH, reject_cookie_button_xpath).click()
     return
 
@@ -25,6 +27,7 @@ def search_job(driver):
     This function adds job name into the indeed job search box.
     """
     search_bar_xpath = '/html/body/div[1]/div[1]/div/span/div[4]/div[1]/div/div/div/div/form/div/div[1]/div[1]/div/div/span/input'
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, search_bar_xpath))) # Page Loads
     search_box = driver.find_element(By.XPATH, search_bar_xpath)
     search_box.send_keys('data analyst')  # Change this dynamically later
     return search_box  # Returning search_box so it can be used later
@@ -34,6 +37,7 @@ def search_location(driver):
     This function adds location to the indeed location search box.
     """
     location_input_bar_xpath = '/html/body/div[1]/div[1]/div/span/div[4]/div[1]/div/div/div/div/form/div/div[1]/div[3]/div/div/span/input'
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, location_input_bar_xpath))) # Page Loads
     location_input_bar = driver.find_element(By.XPATH, location_input_bar_xpath)
     location_input_bar.send_keys('London')  # Change this dynamically later
     return
