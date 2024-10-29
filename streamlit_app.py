@@ -275,6 +275,11 @@ with tab2:
                 st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
 
 with tab3:
+
+    st.markdown('<h2 style="color: white;">Job Search</h2>', unsafe_allow_html=True)
+    job_title_search = st.text_input("Job Title", placeholder="Enter job title")
+    location_search = st.text_input("Location", placeholder="Enter location")
+
     st.markdown('<h2 style="color: white;">Matched Job</h2>', unsafe_allow_html=True)
 
     # Simulated scraped data (replace with your actual scraped data)
