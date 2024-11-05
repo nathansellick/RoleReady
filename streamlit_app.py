@@ -307,7 +307,36 @@ with tab3:
 
         with open("job_description.json", "w") as outfile: 
             json.dump(job_dic, outfile)
+
+            # Create a tab for Job Details
+        with st.expander("Job Details", expanded=True):
         
+
+            # Job title and company information
+            st.markdown(f"<h2 style='color: white;'>{job_dic['job_title']}</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h4 style='color: white;'>{job_dic['company']} - {job_dic['location']}</h4>", unsafe_allow_html=True)
+
+            # Job description
+            st.markdown("<h3 style='color: white;'>Job Description</h3>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
+
+            # Employment type
+            st.markdown("<h3 style='color: white;'>Employment Type</h3>", unsafe_allow_html=True)
+            st.markdown(
+                "<ul style='color: white;'>" +
+                "".join(f"<li>{req}</li>" for req in job_dic['employment_type']) +
+                "</ul>",
+                unsafe_allow_html=True
+            )
+
+            # Salary
+            st.markdown("<h3 style='color: white;'>Salary</h3>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color: white;'>{job_dic['salary']}</p>", unsafe_allow_html=True)
+
+            # Application link
+            st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
+            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+            
 
 
     
@@ -319,34 +348,7 @@ with tab3:
     
 
 
-    # Create a tab for Job Details
-    with st.expander("Job Details", expanded=True):
-      
-
-        # Job title and company information
-        st.markdown(f"<h2 style='color: white;'>{job_dic['job_title']}</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h4 style='color: white;'>{job_dic['company']} - {job_dic['location']}</h4>", unsafe_allow_html=True)
-
-        # Job description
-        st.markdown("<h3 style='color: white;'>Job Description</h3>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
-
-        # Employment type
-        st.markdown("<h3 style='color: white;'>Employment Type</h3>", unsafe_allow_html=True)
-        st.markdown(
-            "<ul style='color: white;'>" +
-            "".join(f"<li>{req}</li>" for req in job_dic['employment_type']) +
-            "</ul>",
-            unsafe_allow_html=True
-        )
-
-        # Salary
-        st.markdown("<h3 style='color: white;'>Salary</h3>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: white;'>{job_dic['salary']}</p>", unsafe_allow_html=True)
-
-        # Application link
-        st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
-        st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+    
 
      # Buttons with icons for additional functionality
     st.markdown("---")  # Divider line for visual separation

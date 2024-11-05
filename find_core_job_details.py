@@ -35,7 +35,7 @@ def find_salary(driver):
     This function will return the salary on the job description.
     """
     try:
-        salary = driver.find_element(By.CSS_SELECTOR, '.js-match-insights-provider-tvvxwd.ecydgvn1').text
+        salary = driver.find_element(By.CSS_SELECTOR, '.css-19j1a75.eu4oa1w0').text
     except:
         salary = 'No Salary'
     return salary
