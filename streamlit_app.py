@@ -1,6 +1,7 @@
 # pip install streamlit_tags
 
 # Import packages
+import pandas as pd
 from find_core_job_details import *
 import openai
 import json
@@ -321,46 +322,37 @@ with tab3:
             # Create a tab for Job Details
         with st.expander("Job Details", expanded=True):
         
-
-            # Job title and company information
-            st.markdown(f"<h2 style='color: white;'>{job_dic['job_title']}</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h4 style='color: white;'>{job_dic['company']} - {job_dic['location']}</h4>", unsafe_allow_html=True)
-
-            # Job description
-            st.markdown("<h3 style='color: white;'>Job Description</h3>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
-
-            # Employment type
-            st.markdown("<h3 style='color: white;'>Employment Type</h3>", unsafe_allow_html=True)
-            st.markdown(
-                "<ul style='color: white;'>" +
-                "".join(f"<li>{req}</li>" for req in job_dic['employment_type']) +
-                "</ul>",
-                unsafe_allow_html=True
-            )
-
-            # Salary
-            st.markdown("<h3 style='color: white;'>Salary</h3>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: white;'>{job_dic['salary']}</p>", unsafe_allow_html=True)
-
-            # Application link
-            st.markdown("<h3 style='color: white;'>Apply Here</h3>", unsafe_allow_html=True)
-            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
             
+            # Job Title
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Title</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['job_title']}</h3>", unsafe_allow_html=True)
+
+            # Company
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Company</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['company']}</h3>", unsafe_allow_html=True)
+        
+            #Location 
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Location</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['location']}</h3>", unsafe_allow_html=True)
+            
+            # Employment type
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Employment Type</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['employment_type']}</h3>", unsafe_allow_html=True)
+          
+            # Salary
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Salary</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['salary']}</h3>", unsafe_allow_html=True)
+
+            #Job description
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
+            
+            # Application link
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
+            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
 
 
-    
-
-    st.markdown('<h2 style="color: white;">Matched Job</h2>', unsafe_allow_html=True)
-
-    # Simulated scraped data (replace with your actual scraped data)
-    #job_data = job_dic
-    
-
-
-    
-
-     # Buttons with icons for additional functionality
+    # Buttons with icons for additional functionality
     st.markdown("---")  # Divider line for visual separation
     col1, col2, col3 = st.columns(3)
     
@@ -370,3 +362,20 @@ with tab3:
         st.button("💾 Save Job")
     with col3:
         st.button("➡️ Next Job")
+
+
+
+
+            
+
+
+    
+
+   
+
+   
+    
+
+
+    
+
