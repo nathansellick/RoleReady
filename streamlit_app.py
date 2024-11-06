@@ -1,9 +1,8 @@
 # pip install streamlit_tags
 
-
-
 # Import packages
 from find_core_job_details import *
+import openai
 import json
 import subprocess
 import streamlit as st
@@ -18,6 +17,17 @@ chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("--disable-infobars")
 chrome_options.add_argument("--disable-web-security")
 chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+
+# Defining functions
+
+def get_completion(prompt, model="gpt-4o-mini", temperature=0):
+    messages = [{"role": "user", "content": prompt}]
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature = temperature
+    )
+    return response.choices[0].message.content
 
 
 
