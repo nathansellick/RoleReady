@@ -2,13 +2,36 @@
 
 # Import packages
 import pandas as pd
-from find_core_job_details import *
+import os
 import openai
 import json
 import subprocess
+import psycopg2
 import streamlit as st
+from find_core_job_details import *
 from PIL import Image
 from streamlit_tags import st_tags
+from dotenv import load_dotenv
+
+# Load the environment variables from the .env file
+load_dotenv()
+
+# Retrieve the environment variables
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT')
+APIKEY = os.getenv('APIKEY')
+
+# Now you can use the loaded environment variables to connect to your database
+conn = psycopg2.connect(
+    dbname=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    host=DB_HOST,
+    port=DB_PORT
+)
 
 # Setup Chrome options to disable popups and redirections
 chrome_options = Options()
