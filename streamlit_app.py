@@ -33,6 +33,8 @@ conn = psycopg2.connect(
     port=DB_PORT
 )
 
+cursor = conn.cursor()
+
 # Setup Chrome options to disable popups and redirections
 chrome_options = Options()
 chrome_options.add_argument("--disable-popup-blocking")
@@ -52,6 +54,21 @@ def get_completion(prompt, model="gpt-4o-mini", temperature=0):
         temperature = temperature
     )
     return response.choices[0].message.content
+
+
+# Inject CSS to adjust the width of nested tabs
+st.markdown(
+    """
+    <style>
+    /* Adjust width of nested tabs */
+    div.stTabs [role="tablist"] {
+        display: flex;
+        justify-content: space-between;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 
@@ -157,7 +174,25 @@ with tab1:
 
     # Optional: Button to submit the form
     if st.button("Create Account"):
-        st.success(f"Account created for {username}!")
+        # Parameterized query to prevent SQL injection
+        sql_query = '''
+        INSERT INTO users (user_name, user_password)
+        VALUES (%s, %s)
+        '''
+        
+        try:
+            # Execute the query with the provided values
+            cursor.execute(sql_query, (username, password))
+            conn.commit()  # Commit the transaction
+            st.success(f"Account created for {username}!")
+        except Exception as e:
+            st.error(f"Error creating account: {e}")
+        finally:
+            cursor.close()
+            conn.close()
+    
+    
+  
 
 with tab2:
     st.markdown('<h2 style="color: white;">Work Experience</h2>', unsafe_allow_html=True)
