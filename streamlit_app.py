@@ -12,6 +12,7 @@ from find_core_job_details import *
 from PIL import Image
 from streamlit_tags import st_tags
 from dotenv import load_dotenv
+from streamlit import session_state as state
 
 # Load the environment variables from the .env file
 load_dotenv()
@@ -33,6 +34,7 @@ conn = psycopg2.connect(
     port=DB_PORT
 )
 
+# Creates cursor object in PostgreSQL 
 cursor = conn.cursor()
 
 # Setup Chrome options to disable popups and redirections
@@ -132,8 +134,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize session state for work experiences if not already initialized
-if 'work_experiences' not in st.session_state:
-    st.session_state.work_experiences = []
+#if 'work_experiences' not in st.session_state:
+    #st.session_state.work_experiences = []
 
 # Initialize session state for education if not already initialized
 if 'education_entries' not in st.session_state:
@@ -181,11 +183,9 @@ with tab1:
             cursor.execute(sql_query, (username, password))
             conn.commit()  # Commit the transaction
             st.success(f"Account created for {username}!")
+            cursor.close() # closes cursor object
         except Exception as e:
             st.error(f"Error creating account: {e}")
-        finally:
-            cursor.close()
-            conn.close()
 
     # Login section
     st.markdown("<h2 style='color: white;'>Login</h2>", unsafe_allow_html=True)
@@ -195,7 +195,25 @@ with tab1:
     password_login = st.text_input("Password", placeholder="Enter your password", type="password", key="login_password")
 
     # Button to login
-    st.button("Login")
+    if st.button("Login"):
+    
+        # Query to authenticate the user
+        login_query = '''
+        SELECT user_id FROM users
+        WHERE user_name = %s AND user_password = %s
+        '''
+        cursor = conn.cursor()
+        cursor.execute(login_query, (username_login, password_login))
+        result = cursor.fetchone()
+        
+        if result:
+            # Store user_id in session state if login is successful
+            state["user_id"] = result[0]
+            st.success(f"Welcome back, {username_login}!")
+        else:
+            st.error("Invalid username or password.")
+        
+        cursor.close()
     
     
   
@@ -203,53 +221,58 @@ with tab1:
 with tab2:
     st.markdown('<h2 style="color: white;">Work Experience</h2>', unsafe_allow_html=True)
     
+   # Define a list to store work experiences temporarily (no session_state)
+    work_experiences = []
+
     # Create a collapsible section for Work Experience
     with st.expander("Add Work Experience", expanded=True):
-        for index, experience in enumerate(st.session_state.work_experiences):
+        for index, experience in enumerate(work_experiences):
             st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
             col1, col2 = st.columns(2)
+            
             with col1:
                 # Display labels in white and input fields below
                 st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
-                job_title = st.text_input("", key = f"enter_job_title_{index}")
-            
+                job_title = st.text_input("", key=f"enter_job_title_{index}")
+                
                 st.markdown('<span style="color: white;">Start Date</span>', unsafe_allow_html=True)
-                start_date = st.text_input("", key = f"enter_start_date_{index}")
-                
+                start_date = st.text_input("", key=f"enter_start_date_{index}")
+                    
                 st.markdown('<span style="color: white;">City</span>', unsafe_allow_html=True)
-                city = st.text_input("", key = f"enter_city_{index}")
+                city = st.text_input("", key=f"enter_city_{index}")
 
-
-                
             with col2:
                 st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
-                company = st.text_input("", key = f"enter_company_{index}")
+                company = st.text_input("", key=f"enter_company_{index}")
 
                 st.markdown('<span style="color: white;">End Date</span>', unsafe_allow_html=True)
-                end_date = st.text_input("", key = f"enter_end_date_{index}")
+                end_date = st.text_input("", key=f"enter_end_date_{index}")
 
                 st.markdown('<span style="color: white;">Country</span>', unsafe_allow_html=True)
-                country = st.text_input("", key = f"enter_country_{index}")
+                country = st.text_input("", key=f"enter_country_{index}")
 
             st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-            job_description = st.text_input("", key = f"enter_job_description_{index}")
+            job_description = st.text_input("", key=f"enter_job_description_{index}")
 
             if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_exp_{index}"):
-                st.session_state.work_experiences.pop(index)
+                # Remove the work experience from the list
+                work_experiences.pop(index)
                 st.experimental_rerun()  # Refresh the app to reflect the removal
 
         # Button to add new work experience
         if st.button("Add Work Experience"):
-            st.session_state.work_experiences.append({
+            # Add a new empty dictionary (template for the new work experience)
+            work_experiences.append({
                 "job_title": "",
                 "company": "",
-                "work_period": "",
-                "location": "",
+                "start_date": "",
+                "end_date": "",
+                "city": "",
+                "country": "",
                 "job_description": ""
             })
             st.experimental_rerun()  # Refresh the app to reflect the addition
-    
-    st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
 
     # Create a collapsible section for Education
     with st.expander("Add Education", expanded=True):
@@ -434,6 +457,8 @@ with tab3:
         st.button("💾 Save Job")
     with col3:
         st.button("➡️ Next Job")
+
+conn.close() #closes connection
 
 
 
