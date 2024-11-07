@@ -55,23 +55,6 @@ def get_completion(prompt, model="gpt-4o-mini", temperature=0):
     )
     return response.choices[0].message.content
 
-
-# Inject CSS to adjust the width of nested tabs
-st.markdown(
-    """
-    <style>
-    /* Adjust width of nested tabs */
-    div.stTabs [role="tablist"] {
-        display: flex;
-        justify-content: space-between;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-
-
 # CSS for dark blue background and tab styling
 st.markdown(
     """
@@ -135,6 +118,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Custom CSS to style the labels
+st.markdown("""
+    <style>
+        /* Change the color of labels to white */
+        .stTextInput label {
+            color: white !important;
+        }
+        .stPasswordInput label {
+            color: white !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Initialize session state for work experiences if not already initialized
 if 'work_experiences' not in st.session_state:
     st.session_state.work_experiences = []
@@ -166,13 +162,13 @@ with tab1:
     st.image(image, width=800, use_column_width='always')  # Use column width to keep it centered
 
     # Create an Account section
-    st.markdown('<p class="account-header">Create an Account</p>', unsafe_allow_html=True)
+    st.markdown("<h2 style='color: white;'>Create an Account</h2>", unsafe_allow_html=True)
 
     # Input fields for username and password
-    username = st.text_input("Username", placeholder="Enter your username")
-    password = st.text_input("Password", placeholder="Enter your password", type="password")
+    username = st.text_input("Username", placeholder="Enter your username", key = "create_account_username")
+    password = st.text_input("Password", placeholder="Enter your password", type="password", key = "create_account_password")
 
-    # Optional: Button to submit the form
+    # Button to create account and add user to PostgreSQL database
     if st.button("Create Account"):
         # Parameterized query to prevent SQL injection
         sql_query = '''
@@ -190,6 +186,16 @@ with tab1:
         finally:
             cursor.close()
             conn.close()
+
+    # Login section
+    st.markdown("<h2 style='color: white;'>Login</h2>", unsafe_allow_html=True)
+
+    # Input fields for username and password login
+    username_login = st.text_input("Username", placeholder="Enter your username", key = "login_username")
+    password_login = st.text_input("Password", placeholder="Enter your password", type="password", key="login_password")
+
+    # Button to login
+    st.button("Login")
     
     
   
@@ -205,20 +211,28 @@ with tab2:
             with col1:
                 # Display labels in white and input fields below
                 st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
-                experience['job_title'] = st.text_input("", experience['job_title'], key=f"job_title_{index}")
+                job_title = st.text_input("", key = f"enter_job_title_{index}")
+            
+                st.markdown('<span style="color: white;">Start Date</span>', unsafe_allow_html=True)
+                start_date = st.text_input("", key = f"enter_start_date_{index}")
                 
-                st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
-                experience['company'] = st.text_input("", experience['company'], key=f"company_{index}")
-                
-                st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
-                experience['work_period'] = st.text_input("", experience['work_period'], key=f"work_period_{index}")
-                
-                st.markdown('<span style="color: white;">Location</span>', unsafe_allow_html=True)
-                experience['location'] = st.text_input("", experience['location'], key=f"location_{index}")
+                st.markdown('<span style="color: white;">City</span>', unsafe_allow_html=True)
+                city = st.text_input("", key = f"enter_city_{index}")
+
+
                 
             with col2:
-                st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-                experience['job_description'] = st.text_area("", experience['job_description'], key=f"job_description_{index}")
+                st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
+                company = st.text_input("", key = f"enter_company_{index}")
+
+                st.markdown('<span style="color: white;">End Date</span>', unsafe_allow_html=True)
+                end_date = st.text_input("", key = f"enter_end_date_{index}")
+
+                st.markdown('<span style="color: white;">Country</span>', unsafe_allow_html=True)
+                country = st.text_input("", key = f"enter_country_{index}")
+
+            st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
+            job_description = st.text_input("", key = f"enter_job_description_{index}")
 
             if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_exp_{index}"):
                 st.session_state.work_experiences.pop(index)
