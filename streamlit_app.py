@@ -57,7 +57,22 @@ def get_completion(prompt, model="gpt-4o-mini", temperature=0):
     )
     return response.choices[0].message.content
 
-def insert_education_entry(user_id, education):
+def insert_work_exp_entry(user_id: int, work_experience: dict):
+    """
+    Function inserts inputted work experience information for user into database
+    """
+    user_id = st.session_state['user_id']
+    insert_query = """
+    INSERT INTO work_experiences(user_id, job_title, company, start_date, end_date, city, country, job_description)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    cursor = conn.cursor()
+    cursor.execute(insert_query, (user_id, work_experience['job_title'], work_experience['company'], work_experience['start_date'], work_experience['end_date'],work_experience['city'],
+                                  work_experience['country'],work_experience['job_description']))
+    conn.commit()
+    cursor.close()
+
+def insert_education_entry(user_id: int, education: dict):
     """
     Function inserts inputted education information for user into database
     """
@@ -67,8 +82,20 @@ def insert_education_entry(user_id, education):
     VALUES (%s, %s, %s, %s, %s)
     """
     cursor = conn.cursor()
-    cursor.execute(insert_query, (user_id, education['university'], education['degree'], education['grad_year'], education['grade']
-    ))
+    cursor.execute(insert_query, (user_id, education['university'], education['degree'], education['grad_year'], education['grade']))
+    conn.commit()
+    cursor.close()
+
+def insert_project_entry(user_id: int, project: dict):
+    """
+    Function inserts inputted project information for user into database
+    """
+    user_id = st.session_state['user_id']
+    insert_query = """
+    projects(user_id, start_date, end_date, description)
+    """
+    cursor = conn.cursor()
+    cursor.execute(insert_query, (user_id, project['start_date'], project['end_date'], project['description']))
     conn.commit()
     cursor.close()
 
@@ -149,8 +176,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Initialize session state for work experiences if not already initialized
-#if 'work_experiences' not in st.session_state:
-    #st.session_state.work_experiences = []
+if 'work_experiences' not in st.session_state:
+    st.session_state.work_experiences = {}
 
 # Initialize session state for education if not already initialized
 if 'education_entries' not in st.session_state:
@@ -158,15 +185,15 @@ if 'education_entries' not in st.session_state:
 
 # Initialize session state for projects if not already initialized
 if 'projects' not in st.session_state:
-    st.session_state.projects = []
+    st.session_state.projects = {}
 
 # Initialize session state for projects if not already initialized
 if 'certifications' not in st.session_state:
-    st.session_state.certifications = []
+    st.session_state.certifications = {}
 
 # Initialize session state for skills if not already initialized
 if 'skills' not in st.session_state:
-    st.session_state.skills = []
+    st.session_state.skills = {}
 
 
 
@@ -247,60 +274,64 @@ with tab1:
 
 with tab2:
     st.markdown('<h2 style="color: white;">Work Experience</h2>', unsafe_allow_html=True)
-    
-   # Define a list to store work experiences temporarily (no session_state)
-    work_experiences = []
 
-    # Create a collapsible section for Work Experience
-    with st.expander("Add Work Experience", expanded=True):
-        for index, experience in enumerate(work_experiences):
-            st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Display labels in white and input fields below
-                st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
-                job_title = st.text_input("", key=f"enter_job_title_{index}")
-                
-                st.markdown('<span style="color: white;">Start Date</span>', unsafe_allow_html=True)
-                start_date = st.text_input("", key=f"enter_start_date_{index}")
-                    
-                st.markdown('<span style="color: white;">City</span>', unsafe_allow_html=True)
-                city = st.text_input("", key=f"enter_city_{index}")
+    # Check if the user is logged in by checking if user_id exists in session_state
+    if 'user_id' in st.session_state:
+        with st.expander("Add Work Experience", expanded=True):
+            # Loop through each work experience entry stored in session_state
+            for index, (key, work_experience) in enumerate(st.session_state.work_experiences.items()):
+                st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
+                col1, col2 = st.columns(2)
 
-            with col2:
-                st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
-                company = st.text_input("", key=f"enter_company_{index}")
+                with col1:
+                    st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
+                    work_experience['job_title'] = st.text_input("", work_experience.get('job_title', ''), key=f"job_title_{key}")
 
-                st.markdown('<span style="color: white;">End Date</span>', unsafe_allow_html=True)
-                end_date = st.text_input("", key=f"enter_end_date_{index}")
+                    st.markdown('<span style="color: white;">Start Date</span>', unsafe_allow_html=True)
+                    work_experience['start_date'] = st.text_input("", work_experience.get('start_date', ''), key=f"job_start_date_{key}")
 
-                st.markdown('<span style="color: white;">Country</span>', unsafe_allow_html=True)
-                country = st.text_input("", key=f"enter_country_{index}")
+                    st.markdown('<span style="color: white;">City</span>', unsafe_allow_html=True)
+                    work_experience['city'] = st.text_input("", work_experience.get('city', ''), key=f"city_{key}")
 
-            st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-            job_description = st.text_input("", key=f"enter_job_description_{index}")
+                with col2:
+                    st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
+                    work_experience['company'] = st.text_input("", work_experience.get('company', ''), key=f"company_{key}")
 
-            if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_exp_{index}"):
-                # Remove the work experience from the list
-                work_experiences.pop(index)
-                st.experimental_rerun()  # Refresh the app to reflect the removal
+                    st.markdown('<span style="color: white;">End Date</span>', unsafe_allow_html=True)
+                    work_experience['end_date'] = st.text_input("", work_experience.get('end_date', ''), key=f"job_end_date_{key}")
 
-        # Button to add new work experience
-        if st.button("Add Work Experience"):
-            # Add a new empty dictionary (template for the new work experience)
-            work_experiences.append({
-                "job_title": "",
-                "company": "",
-                "start_date": "",
-                "end_date": "",
-                "city": "",
-                "country": "",
-                "job_description": ""
-            })
-            st.experimental_rerun()  # Refresh the app to reflect the addition
-        st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
+                    st.markdown('<span style="color: white;">Country</span>', unsafe_allow_html=True)
+                    work_experience['country'] = st.text_input("", work_experience.get('country', ''), key=f"country_{key}")
 
+                st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
+                work_experience['job_description'] = st.text_input("", work_experience.get('job_description', ''), key=f"job_description_{key}")
+
+            # Button to add a new education entry
+            if st.button("Add Work Experience"):
+                new_key = f"school_{len(st.session_state.work_experiences) + 1}"
+                st.session_state.work_experiences[new_key] = {
+                    "job_title": "",
+                    "company": "",
+                    "start_date": "",
+                    "end_date": "",
+                    "city":"",
+                    "country":"",
+                    "job_description":""
+                }
+                st.experimental_rerun()  # Refresh the page to reflect the addition
+
+            # Button to save all education entries to the database
+            if st.button("Save Work Experiences to Database"):
+                user_id = st.session_state["user_id"]
+                for work_experience in st.session_state.work_experiences.values():
+                    insert_work_exp_entry(user_id, work_experience)
+                st.success("All work experiences have been saved to the database.")
+
+    else:
+        st.info("Please log in to add your education details.")
+
+
+    st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
     # Check if the user is logged in by checking if user_id exists in session_state
     if 'user_id' in st.session_state:
         with st.expander("Add Education", expanded=True):
@@ -349,38 +380,51 @@ with tab2:
 
     else:
         st.info("Please log in to add your education details.")
+
     
-
     st.markdown('<h2 style="color: white;">Projects</h2>', unsafe_allow_html=True)
+    # Check if user is logged in 
+    if 'user_id' in st.session_state:
+        with st.expander("Add Project", expanded=True):
+            # Loop through each project entry stored in session_state
+            for index, (key, project) in enumerate(st.session_state.projects.items()):
+                st.markdown(f'<h4 style="color: white;">Project {index + 1}</h4>', unsafe_allow_html=True)
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown('<span style="color: white;">Start Date</span>', unsafe_allow_html=True)
+                    project['start_date'] = st.text_input("", project.get('start_date', ''), key=f"project_start_date_{index}")
+                with col2:
+                    st.markdown('<span style="color: white;">End Date</span>', unsafe_allow_html=True)
+                    project['end_date'] = st.text_input("", project.get('end_date', ''), key=f"project_end_date_{index}")
 
-    with st.expander("Add Projects", expanded=True):
+                st.markdown('<span style="color: white;">Project Description</span>', unsafe_allow_html=True)
+                project['description'] = st.text_input("", project.get('description', ''), key=f"project_description_{index}")
 
-        for index, project in enumerate(st.session_state.projects):
-            # Heading for each project e.g. project 1, project 2
-            st.markdown(f'<h4 style="color: white;">Project {index + 1}</h4>', unsafe_allow_html=True)
+                # Add the Remove Education button
+                if st.button(f"Remove Project {index + 1}", key=f"remove_project_{key}"):
+                    st.session_state.projects.pop(key)
+                    st.experimental_rerun()  # Refresh the page to reflect the removal
 
-            # Display labels in white and input fields below
-            st.markdown('<span style="color: white;">Project Title</span>', unsafe_allow_html=True)
-            project['project_title'] = st.text_input("", project.get('project_title', ''), key=f"project_title_{index}")
+             # Button to add a new education entry
+            if st.button("Add Project"):
+                new_key = f"school_{len(st.session_state.projects) + 1}"
+                st.session_state.projects[new_key] = {
+                    "start_date": "",
+                    "end_date": "",
+                    "description": ""
+                }
+                st.experimental_rerun()  # Refresh the page to reflect the addition
 
-            st.markdown('<span style="color: white;">Period</span>', unsafe_allow_html=True)
-            project['project_period'] = st.text_input("", project.get('project_period', ''), key=f"project_period_{index}")
+                 # Button to save all education entries to the database
+            if st.button("Save Projects to Database"):
+                user_id = st.session_state["user_id"]
+                for project in st.session_state.projects.values():
+                    insert_project_entry(user_id, project)
+                st.success("All project entries have been saved to the database.")
 
-            st.markdown('<span style="color: white;">Desciption</span>', unsafe_allow_html=True)
-            project['project_description'] = st.text_input("", project.get('project_description', ''), key=f"project_description_{index}")
+    else:
+        st.info("Please log in to add your projects.")
 
-            if st.button(f"Remove Project {index + 1}", key=f"remove_project{index}"):
-                st.session_state.projects.pop(index)
-                st.experimental_rerun()  # Refresh the app to reflect the removal
-
-        # Button to add new project
-        if st.button("Add Project"):
-            st.session_state.projects.append({
-                "project_title": "",
-                "project_period": "",
-                "project_description": ""
-            })
-            st.experimental_rerun()  # Refresh the app to reflect the addition
 
     
     st.markdown('<h2 style="color: white;">Certifications</h2>', unsafe_allow_html=True)
