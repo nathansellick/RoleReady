@@ -57,6 +57,21 @@ def get_completion(prompt, model="gpt-4o-mini", temperature=0):
     )
     return response.choices[0].message.content
 
+def insert_education_entry(user_id, education):
+    """
+    Function inserts inputted education information for user into database
+    """
+    user_id = st.session_state['user_id']
+    insert_query = """
+    INSERT INTO education(user_id, university, degree, graduation_year, grade)
+    VALUES (%s, %s, %s, %s, %s)
+    """
+    cursor = conn.cursor()
+    cursor.execute(insert_query, (user_id, education['university'], education['degree'], education['grad_year'], education['grade']
+    ))
+    conn.commit()
+    cursor.close()
+
 # CSS for dark blue background and tab styling
 st.markdown(
     """
@@ -139,7 +154,7 @@ st.markdown("""
 
 # Initialize session state for education if not already initialized
 if 'education_entries' not in st.session_state:
-    st.session_state.education_entries = []
+    st.session_state.education_entries = {}
 
 # Initialize session state for projects if not already initialized
 if 'projects' not in st.session_state:
@@ -195,27 +210,39 @@ with tab1:
     password_login = st.text_input("Password", placeholder="Enter your password", type="password", key="login_password")
 
     # Button to login
-    if st.button("Login"):
-    
-        # Query to authenticate the user
-        login_query = '''
-        SELECT user_id FROM users
-        WHERE user_name = %s AND user_password = %s
-        '''
-        cursor = conn.cursor()
-        cursor.execute(login_query, (username_login, password_login))
-        result = cursor.fetchone()
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Login"):
         
-        if result:
-            # Store user_id in session state if login is successful
-            state["user_id"] = result[0]
-            st.success(f"Welcome back, {username_login}!")
-        else:
-            st.error("Invalid username or password.")
-        
-        cursor.close()
+            # Query to authenticate the user
+            login_query = '''
+            SELECT user_id FROM users
+            WHERE user_name = %s AND user_password = %s
+            '''
+            cursor = conn.cursor()
+            cursor.execute(login_query, (username_login, password_login))
+            result = cursor.fetchone()
+            
+            if result:
+                # Store user_id in session state if login is successful
+                state["user_id"] = result[0]
+                st.success(f"Welcome back, {username_login}!")
+            else:
+                st.error("Invalid username or password.")
+            
+            cursor.close()
+
+    with col2:
     
-    
+        if "user_id" in st.session_state:
+            # Display the logout button if the user is logged in
+            if st.button("Logout"):
+                # Clear the session state to log out the user
+                for key in st.session_state.keys():
+                    del st.session_state[key]
+                st.success("You have been logged out.")
+                
   
 
 with tab2:
@@ -274,42 +301,55 @@ with tab2:
             st.experimental_rerun()  # Refresh the app to reflect the addition
         st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
 
-    # Create a collapsible section for Education
-    with st.expander("Add Education", expanded=True):
-        for index, education in enumerate(st.session_state.education_entries):
-           
-            st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
-            col1, col2 = st.columns(2)
+    # Check if the user is logged in by checking if user_id exists in session_state
+    if 'user_id' in st.session_state:
+        with st.expander("Add Education", expanded=True):
+            # Loop through each education entry stored in session_state
+            for index, (key, education) in enumerate(st.session_state.education_entries.items()):
+                st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
+                col1, col2 = st.columns(2)
 
-            with col1:
-                # Display labels in white and input fields below
-                st.markdown('<span style="color: white;">University</span>', unsafe_allow_html=True)
-                education['university'] = st.text_input("", education.get('university', ''), key=f"university_{index}")
+                with col1:
+                    # Display labels in white and input fields below
+                    st.markdown('<span style="color: white;">University</span>', unsafe_allow_html=True)
+                    education['university'] = st.text_input("", education.get('university', ''), key=f"university_{key}")
 
-                st.markdown('<span style="color: white;">Degree</span>', unsafe_allow_html=True)
-                education['degree'] = st.text_input("", education.get('degree', ''), key=f"degree_{index}")
+                    st.markdown('<span style="color: white;">Degree</span>', unsafe_allow_html=True)
+                    education['degree'] = st.text_input("", education.get('degree', ''), key=f"degree_{key}")
 
-            with col2:
-                st.markdown('<span style="color: white;">Graduation Year</span>', unsafe_allow_html=True)
-                education['graduation year'] = st.text_input("", education.get('graduation year', ''), key=f"graduation_year_{index}")
+                with col2:
+                    st.markdown('<span style="color: white;">Graduation Year</span>', unsafe_allow_html=True)
+                    education['grad_year'] = st.text_input("", education.get('grad_year', ''), key=f"graduation_year_{key}")
 
-                st.markdown('<span style="color: white;">Grade</span>', unsafe_allow_html=True)
-                education['grade'] = st.text_input("", education.get('grade', ''), key=f"grade_{index}")
+                    st.markdown('<span style="color: white;">Grade</span>', unsafe_allow_html=True)
+                    education['grade'] = st.text_input("", education.get('grade', ''), key=f"grade_{key}")
 
-            # Add the Remove Education button
-            if st.button(f"Remove Education {index + 1}", key=f"remove_education_{index}"):
-                st.session_state.education_entries.pop(index)
-                st.experimental_rerun()  # Refresh the page to reflect the removal
+                # Add the Remove Education button
+                if st.button(f"Remove Education {index + 1}", key=f"remove_education_{key}"):
+                    st.session_state.education_entries.pop(key)
+                    st.experimental_rerun()  # Refresh the page to reflect the removal
 
-        # Button to add new education entry
-        if st.button("Add Education"):
-            st.session_state.education_entries.append({
-                "university": "",
-                "degree": "",
-                "graduation year": "",
-                "grade": ""
-            })
-            st.experimental_rerun()  # Refresh the page to reflect the addition
+            # Button to add a new education entry
+            if st.button("Add Education"):
+                new_key = f"school_{len(st.session_state.education_entries) + 1}"
+                st.session_state.education_entries[new_key] = {
+                    "university": "",
+                    "degree": "",
+                    "graduation year": "",
+                    "grade": ""
+                }
+                st.experimental_rerun()  # Refresh the page to reflect the addition
+
+            # Button to save all education entries to the database
+            if st.button("Save Education Entries to Database"):
+                user_id = st.session_state["user_id"]
+                for education in st.session_state.education_entries.values():
+                    insert_education_entry(user_id, education)
+                st.success("All education entries have been saved to the database.")
+
+    else:
+        st.info("Please log in to add your education details.")
+    
 
     st.markdown('<h2 style="color: white;">Projects</h2>', unsafe_allow_html=True)
 
