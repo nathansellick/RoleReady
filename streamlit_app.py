@@ -92,10 +92,39 @@ def insert_project_entry(user_id: int, project: dict):
     """
     user_id = st.session_state['user_id']
     insert_query = """
-    projects(user_id, start_date, end_date, description)
+    INSERT INTO projects(user_id, start_date, end_date, description)
+    VALUES (%s, %s, %s, %s)
     """
     cursor = conn.cursor()
     cursor.execute(insert_query, (user_id, project['start_date'], project['end_date'], project['description']))
+    conn.commit()
+    cursor.close()
+
+def insert_certification_entry(user_id: int, certification: dict):
+    """
+    Function inserts inputted certifications for user into database
+    """
+    user_id = st.session_state['user_id']
+    insert_query = """
+    INSERT INTO certifications(user_id, certificate)
+    VALUES (%s, %s)
+    """
+    cursor = conn.cursor()
+    cursor.execute(insert_query, (user_id, certification['title']))
+    conn.commit()
+    cursor.close()
+
+def insert_skills_query(user_id: int, skills_list: list):
+    # Convert the Python list to the PostgreSQL array format
+    skills_array = '{' + ','.join(f'"{skill}"' for skill in skills_list) + '}'
+    insert_query = """
+    INSERT INTO skills(user_id, skill)
+    VALUES (%s, %s)
+    ON CONFLICT (user_id) DO UPDATE
+    SET skill = EXCLUDED.skill
+    """
+    cursor = conn.cursor()
+    cursor.execute(insert_query,(user_id, skills_array))
     conn.commit()
     cursor.close()
 
@@ -193,7 +222,7 @@ if 'certifications' not in st.session_state:
 
 # Initialize session state for skills if not already initialized
 if 'skills' not in st.session_state:
-    st.session_state.skills = {}
+    st.session_state.skills = []
 
 
 
@@ -306,6 +335,11 @@ with tab2:
                 st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
                 work_experience['job_description'] = st.text_input("", work_experience.get('job_description', ''), key=f"job_description_{key}")
 
+                # Add the Remove Work Experience button
+                if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_experience_{key}"):
+                    st.session_state.work_experiences.pop(key)
+                    st.experimental_rerun()  # Refresh the page to reflect the removal
+
             # Button to add a new education entry
             if st.button("Add Work Experience"):
                 new_key = f"school_{len(st.session_state.work_experiences) + 1}"
@@ -405,7 +439,7 @@ with tab2:
                     st.session_state.projects.pop(key)
                     st.experimental_rerun()  # Refresh the page to reflect the removal
 
-             # Button to add a new education entry
+            # Button to add a new education entry
             if st.button("Add Project"):
                 new_key = f"school_{len(st.session_state.projects) + 1}"
                 st.session_state.projects[new_key] = {
@@ -429,57 +463,69 @@ with tab2:
     
     st.markdown('<h2 style="color: white;">Certifications</h2>', unsafe_allow_html=True)
 
-    with st.expander("Add Certifications", expanded=True):
+    if 'user_id' in st.session_state:
+        with st.expander("Add Certification", expanded=True):
+            # Loop through each project entry stored in session_state
+            for index, (key, certification) in enumerate(st.session_state.certifications.items()):
+                st.markdown(f'<h4 style="color: white;">Certiciate {index + 1}</h4>', unsafe_allow_html=True)
 
-        for index, certification in enumerate(st.session_state.certifications):
-            # Heading for each project e.g. project 1, project 2
-            st.markdown(f'<h4 style="color: white;">Certification {index + 1}</h4>', unsafe_allow_html=True)
+                st.markdown('<span style="color: white;">Certificate Title</span>', unsafe_allow_html=True)
+                certification['title'] = st.text_input("", certification.get('title', ''), key=f"certificate_{index}")
 
-            # Display labels in white and input fields below
-            st.markdown('<span style="color: white;">Certification Title</span>', unsafe_allow_html=True)
-            certification['certification_title'] = st.text_input("", certification.get('certification_title', ''), key=f"certification_title_{index}")
+                # Add the Remove Education button
+                if st.button(f"Remove Certification {index + 1}", key=f"remove_certification_{key}"):
+                    st.session_state.certifications.pop(key)
+                    st.experimental_rerun()  # Refresh the page to reflect the removal
 
+            # Button to add a new certification
+            if st.button("Add Certification"):
+                new_key = f"school_{len(st.session_state.certifications) + 1}"
+                st.session_state.certifications[new_key] = {
+                    "title":""
+                }
+                st.experimental_rerun()  # Refresh the page to reflect the addition
 
-            if st.button(f"Remove Certification {index + 1}", key=f"remove_certification{index}"):
-                st.session_state.certifications.pop(index)
-                st.experimental_rerun()  # Refresh the app to reflect the removal
+            if st.button("Save Certifications to Database"):
+                user_id = st.session_state["user_id"]
+                for certification in st.session_state.certifications.values():
+                    insert_certification_entry(user_id, certification)
+                st.success("All certifications have been saved to the database.")
 
-        # Button to add new project
-        if st.button("Add Certication"):
-            st.session_state.certifications.append({
-                "certification_title": ""
-            })
-            st.experimental_rerun()  # Refresh the app to reflect the addition
+    else:
+        st.info("Please log in to add your certifications.")
 
-
-    
-    
 
 
     st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
+    if 'user_id' in st.session_state:
+        with st.expander("Add Skills", expanded=True):
+        
 
-    with st.expander("Add Skills", expanded=True):
-    
+            # Use st_tags to create an input field for adding skills
+            skills = st_tags(
+                label='',
+                text='Add a skill...',
+                value=st.session_state.skills,  # Pre-populate with existing skills
+                suggestions=[],  # You can add skill suggestions if needed
+                maxtags=10,  # Limit to 10 skills (optional)
+                key='skills_input'
+            )
 
-        # Use st_tags to create an input field for adding skills
-        skills = st_tags(
-            label='',
-            text='Add a skill...',
-            value=st.session_state.skills,  # Pre-populate with existing skills
-            suggestions=[],  # You can add skill suggestions if needed
-            maxtags=10,  # Limit to 10 skills (optional)
-            key='skills_input'
-        )
+            # Store the skills back into the session state after modification
+            st.session_state.skills = skills
 
-        # Store the skills back into the session state after modification
-        st.session_state.skills = skills
+            # Display the skills in a tag format
+            if st.session_state.skills:
+                st.markdown('<h4 style="color: white;">Your Skills:</h4>', unsafe_allow_html=True)
+                for skill in st.session_state.skills:
+                    st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
 
-        # Display the skills in a tag format
-        if st.session_state.skills:
-            st.markdown('<h4 style="color: white;">Your Skills:</h4>', unsafe_allow_html=True)
-            for skill in st.session_state.skills:
-                st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
-
+            if st.button("Save Skills to Database"):
+                user_id = st.session_state["user_id"]
+                insert_skills_query(user_id,st.session_state.skills)
+                st.success("Your skills have been saved to the database.")
+    else:
+        st.info("Please log in to add your skills.")
 with tab3:
 
     st.markdown('<h2 style="color: white;">Job Search</h2>', unsafe_allow_html=True)
@@ -543,6 +589,15 @@ with tab3:
         st.button("➡️ Next Job")
 
 conn.close() #closes connection
+
+
+    
+
+
+    
+    
+
+
 
 
 
