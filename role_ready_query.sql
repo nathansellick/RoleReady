@@ -73,15 +73,3 @@ FOREIGN KEY (user_id) REFERENCES users(user_id),
 FOREIGN KEY (job_id) REFERENCES jobs(job_id)
 );
 
-
-
-
-
-
-
-
-
-
-
-
-
