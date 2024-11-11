@@ -59,6 +59,21 @@ def get_completion(prompt, model="gpt-4o-mini", temperature=0):
     )
     return response.choices[0].message.content
 
+def insert_user(username: str, password: str):
+    """
+    insert new username and password into PostgreSQL database
+    """
+    # Parameterized query to prevent SQL injection
+    sql_query = '''
+    INSERT INTO users (user_name, user_password)
+    VALUES (%s, %s)
+    '''
+    cursor = conn.cursor()
+    cursor.execute(sql_query, (username, password))
+    conn.commit()  # Commit the transaction
+    st.success(f"Account created for {username}!")
+    cursor.close() # closes cursor object
+
 def insert_work_exp_entry(user_id: int, work_experience: dict):
     """
     Function inserts inputted work experience information for user into database
@@ -261,20 +276,17 @@ with tab1:
 
     # Button to create account and add user to PostgreSQL database
     if st.button("Create Account"):
-        # Parameterized query to prevent SQL injection
-        sql_query = '''
-        INSERT INTO users (user_name, user_password)
-        VALUES (%s, %s)
-        '''
-        
-        try:
-            # Execute the query with the provided values
-            cursor.execute(sql_query, (username, password))
-            conn.commit()  # Commit the transaction
-            st.success(f"Account created for {username}!")
-            cursor.close() # closes cursor object
-        except Exception as e:
-            st.error(f"Error creating account: {e}")
+        cursor = conn.cursor()
+        select_user_count_query = """SELECT COUNT(user_name) from users 
+        WHERE user_name = %s """
+        cursor.execute(select_user_count_query, (username,))
+        result = cursor.fetchone()
+        num_of_users = result[0]
+        if num_of_users == 0:
+            insert_user(username, password)
+        else:
+            st.error("Account already exists")
+    
 
     # Login section
     st.markdown("<h2 style='color: white;'>Login</h2>", unsafe_allow_html=True)
