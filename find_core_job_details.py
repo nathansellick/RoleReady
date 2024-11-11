@@ -5,6 +5,7 @@ def find_company(driver):
     This function will return the name of the job on the job post.
     """
     try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.css-1ioi40n.e19afand0'))) # Page Loads
         company_name = driver.find_element(By.CSS_SELECTOR, '.css-1ioi40n.e19afand0').text
     except:
         company_name = 'No Company Name'
@@ -15,6 +16,7 @@ def find_job_title(driver):
     This function will return the job title on the job post.
     """
     try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.jobsearch-JobInfoHeader-title.css-1t78hkx.e1tiznh50')))
         job_title = driver.find_element(By.CSS_SELECTOR, '.jobsearch-JobInfoHeader-title.css-1t78hkx.e1tiznh50').text.split('\n')[0]
     except:
         job_title = 'No Job Title'
@@ -25,6 +27,7 @@ def find_location(driver):
     This function will return the location of the job on the job posting.
     """
     try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="inlineHeader-companyLocation"]')))
         location = driver.find_element(By.CSS_SELECTOR, '[data-testid="inlineHeader-companyLocation"]').text
     except:
         location = 'No Location'
@@ -35,7 +38,8 @@ def find_salary(driver):
     This function will return the salary on the job description.
     """
     try:
-        salary = driver.find_element(By.CSS_SELECTOR, '.css-19j1a75.eu4oa1w0').text
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.js-match-insights-provider-tvvxwd.ecydgvn1')))
+        salary = driver.find_element(By.CSS_SELECTOR, '.js-match-insights-provider-tvvxwd.ecydgvn1').text
     except:
         salary = 'No Salary'
     return salary
@@ -45,6 +49,7 @@ def find_employment_type(driver):
     This function will return the employment type e.g. part-time, full-time.
     """
     try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.css-k5flys.eu4oa1w0')))
         employment_type = driver.find_element(By.CSS_SELECTOR, '.css-k5flys.eu4oa1w0').text
         if employment_type.startswith('-'):
             employment_type = employment_type[1:].strip()
@@ -57,6 +62,7 @@ def find_job_description(driver):
     This function return the job description from the job post.
     """
     try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.jobsearch-JobComponent-description.css-16y4thd.eu4oa1w0')))
         job_description = driver.find_element(By.CSS_SELECTOR, '.jobsearch-JobComponent-description.css-16y4thd.eu4oa1w0').text
     except:
         job_description = 'No Job Description'
@@ -67,6 +73,7 @@ def find_company_rating(driver):
     The function returns the company rating found on the job post.
     """
     try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.css-ppxtlp.e1wnkr790')))
         company_rating = driver.find_element(By.CSS_SELECTOR, '.css-ppxtlp.e1wnkr790').text
     except:
         company_rating = 'No Rating'
@@ -78,6 +85,7 @@ def find_apply_link(driver):
     on indeed.
     """
     try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.css-1234qe1.e8ju0x51')))
         apply_link = driver.find_element(By.CSS_SELECTOR, '.css-1234qe1.e8ju0x51').get_attribute('href')
     except:
         apply_link = driver.current_url
