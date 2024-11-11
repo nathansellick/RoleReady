@@ -7,6 +7,7 @@ import openai
 import json
 import subprocess
 import psycopg2
+import datetime
 import streamlit as st
 from find_core_job_details import *
 from PIL import Image
@@ -16,6 +17,9 @@ from streamlit import session_state as state
 
 # Load the environment variables from the .env file
 load_dotenv()
+
+# Get the current date
+current_date = datetime.date.today()
 
 # Retrieve the environment variables
 DB_NAME = os.getenv('DB_NAME')
@@ -34,8 +38,6 @@ conn = psycopg2.connect(
     port=DB_PORT
 )
 
-# Creates cursor object in PostgreSQL 
-cursor = conn.cursor()
 
 # Setup Chrome options to disable popups and redirections
 chrome_options = Options()
@@ -127,6 +129,22 @@ def insert_skills_query(user_id: int, skills_list: list):
     cursor.execute(insert_query,(user_id, skills_array))
     conn.commit()
     cursor.close()
+
+def save_job_query(user_id: int, job_dic: dict):
+    insert_query_1 = """
+    INSERT INTO jobs(job_title, company_name, location, salary, employment_type, company_rating, link_to_application)
+    VALUES(%s, %s, %s, %s, %s, %s, %s)
+    """
+    insert_query_2 = """
+    INSERT INTO users_jobs(user_id, saved_date)
+    VALUES(%s, %s)
+    """
+    cursor = conn.cursor()
+    cursor.execute(insert_query_1, (job_dic['job_title'], job_dic['company'], job_dic['location'], job_dic['salary'], job_dic['employment_type'], job_dic['company_rating'], job_dic['application_link']))
+    cursor.execute(insert_query_2, (user_id, current_date))
+    conn.commit()
+    cursor.close()
+
 
 # CSS for dark blue background and tab styling
 st.markdown(
@@ -541,6 +559,9 @@ with tab3:
         # Find the job information
         job_dic = save_job_information(driver)
 
+        # Save job_dic to session state so it can be accessed outside this block
+        st.session_state['job_dic'] = job_dic
+
         with open("job_description.json", "w") as outfile: 
             json.dump(job_dic, outfile)
 
@@ -574,7 +595,10 @@ with tab3:
             
             # Application link
             st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
-            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
+            #st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
+
+                
 
 
     # Buttons with icons for additional functionality
@@ -584,7 +608,15 @@ with tab3:
     with col1:
         st.button("🤖 Generate CV")
     with col2:
-        st.button("💾 Save Job")
+        if st.button("💾 Save Job", key= 'yoyoyo'):
+            user_id = st.session_state.get("user_id")
+            #job_dic = save_job_information(driver)
+            if user_id and st.session_state["job_dic"]:  # Ensure both exist
+                save_job_query(user_id, st.session_state["job_dic"])
+                st.success("This job has been saved")
+            else:
+                st.error("User ID or job data is missing.")
+            
     with col3:
         st.button("➡️ Next Job")
 
