@@ -10,7 +10,6 @@ import psycopg2
 import datetime
 import streamlit as st
 import atexit
-atexit.register(lambda: conn.close())
 from find_core_job_details import *
 from PIL import Image
 from streamlit_tags import st_tags
