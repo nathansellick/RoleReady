@@ -9,6 +9,8 @@ import subprocess
 import psycopg2
 import datetime
 import streamlit as st
+import atexit
+atexit.register(lambda: conn.close())
 from find_core_job_details import *
 from PIL import Image
 from streamlit_tags import st_tags
@@ -631,8 +633,12 @@ with tab3:
             
     with col3:
         st.button("➡️ Next Job")
+            #next_job_posting(driver)  # Calls the function to scroll and click on the next job
+            #st.info("Moved to the next job posting.")
 
-conn.close() #closes connection
+
+atexit.register(lambda: conn.close())
+#conn.close() #closes connection
 
 
     

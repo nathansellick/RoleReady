@@ -12,8 +12,8 @@ location VARCHAR(60),
 salary VARCHAR(25),
 employment_type VARCHAR(50),
 job_description VARCHAR(200),
-company_rating FLOAT,
-link_to_application VARCHAR(100)
+company_rating VARCHAR(10),
+link_to_application VARCHAR(500)
 );
 
 CREATE TABLE work_experiences (
