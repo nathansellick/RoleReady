@@ -1,4 +1,5 @@
 # pip install streamlit_tags
+# pip install reportlab
 
 # Import packages
 import pandas as pd
@@ -15,6 +16,9 @@ from PIL import Image
 from streamlit_tags import st_tags
 from dotenv import load_dotenv
 from streamlit import session_state as state
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import inch
+
 
 # Load the environment variables from the .env file
 load_dotenv()
@@ -208,6 +212,46 @@ def display_job_details():
             st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
             st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
 
+def find_work_exp_entries():
+    select_work_exp_query = """
+    SELECT COUNT(work_experience_id) FROM work_experiences WHERE user_id = %s
+    """
+    cursor = conn.cursor()
+    cursor.execute(select_work_exp_query, (st.session_state['user_id'],))
+    result = cursor.fetchone()
+    cursor.close()
+    return result[0]
+
+
+def find_education_entries():
+    select_education_query = """
+    SELECT COUNT(education_id) FROM education WHERE user_id = %s
+    """
+    cursor = conn.cursor()
+    cursor.execute(select_education_query, (st.session_state['user_id'],))
+    result = cursor.fetchone()
+    cursor.close()
+    return result[0]
+
+def find_project_entries():
+    select_project_query = """
+    SELECT COUNT(project_id) FROM projects WHERE user_id = %s
+    """
+    cursor = conn.cursor()
+    cursor.execute(select_project_query, (st.session_state['user_id'],))
+    result = cursor.fetchone()
+    cursor.close()
+    return result[0]
+
+def find_certificate_entries():
+    select_certificate_query = """
+    SELECT COUNT(certification_id) FROM certifications WHERE user_id = %s
+    """
+    cursor = conn.cursor()
+    cursor.execute(select_certificate_query, (st.session_state['user_id'],))
+    result = cursor.fetchone()
+    cursor.close()
+    return result[0]
 
 
 
@@ -660,9 +704,17 @@ with tab3:
         
 
 #col1, col2,= st.columns(2)
-#st.button("🤖 Generate CV")
+"""
+    if st.button("🤖 Generate CV"):
+        cv_data = {}
+        for i in range(find_work_exp_entries()):
+            cv_data[f'work_exp_{i+1}_job_title'] 
+        print(find_work_exp_entries())
+        print(find_education_entries())
+        print(find_project_entries())
+        print(find_certificate_entries())
+"""
 atexit.register(lambda: conn.close())
-#conn.close() #closes connection
 
 
     
