@@ -10,7 +10,6 @@ import psycopg2
 import datetime
 import streamlit as st
 import atexit
-atexit.register(lambda: conn.close())
 from find_core_job_details import *
 from PIL import Image
 from streamlit_tags import st_tags
@@ -161,6 +160,42 @@ def save_job_query(user_id: int, job_dic: dict):
     cursor.execute(insert_query_2, (user_id, current_date))
     conn.commit()
     cursor.close()
+
+def display_job_details():
+    job_dic = st.session_state['job_dic']
+
+    with st.expander("Job Details", expanded=True):
+        
+            
+            # Job Title
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Title</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['job_title']}</h3>", unsafe_allow_html=True)
+
+            # Company
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Company</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['company']}</h3>", unsafe_allow_html=True)
+        
+            #Location 
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Location</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['location']}</h3>", unsafe_allow_html=True)
+            
+            # Employment type
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Employment Type</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['employment_type']}</h3>", unsafe_allow_html=True)
+          
+            # Salary
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Salary</h2>", unsafe_allow_html=True)
+            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['salary']}</h3>", unsafe_allow_html=True)
+
+            #Job description
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
+            
+            # Application link
+            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
+            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
+
+
 
 
 # CSS for dark blue background and tab styling
@@ -569,74 +604,50 @@ with tab3:
         driver = uc.Chrome(options=chrome_options)
 
         load_and_search(driver, job_title_search, location_search)
+        
 
         # Find the job information
         job_dic = save_job_information(driver)
 
         # Save job_dic to session state so it can be accessed outside this block
         st.session_state['job_dic'] = job_dic
+        st.session_state['driver'] = driver
 
         with open("job_description.json", "w") as outfile: 
             json.dump(job_dic, outfile)
 
-            # Create a tab for Job Details
-        with st.expander("Job Details", expanded=True):
+        display_job_details()
         
             
-            # Job Title
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Title</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['job_title']}</h3>", unsafe_allow_html=True)
+    if st.button("➡️ Next Job"):
+        driver = st.session_state.get('driver')
+        if driver:
+            # Get the next job posting and save it to session state
+            next_job_posting(driver)  # Scrolls to the next job in the job listing
+            job_dic = save_job_information(driver)  # Fetch the new job details
+            st.session_state['job_dic'] = job_dic
 
-            # Company
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Company</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['company']}</h3>", unsafe_allow_html=True)
-        
-            #Location 
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Location</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['location']}</h3>", unsafe_allow_html=True)
-            
-            # Employment type
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Employment Type</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['employment_type']}</h3>", unsafe_allow_html=True)
-          
-            # Salary
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Salary</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['salary']}</h3>", unsafe_allow_html=True)
-
-            #Job description
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
-            
-            # Application link
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
-            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
-            #st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>Click to Apply</a>", unsafe_allow_html=True)
-
-                
+            display_job_details()
+        else:
+            st.error("Please start the job search first by clicking 'Job Search'.")
+                    
 
 
     # Buttons with icons for additional functionality
     st.markdown("---")  # Divider line for visual separation
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.button("🤖 Generate CV")
-    with col2:
-        if st.button("💾 Save Job", key= 'yoyoyo'):
-            user_id = st.session_state.get("user_id")
-            #job_dic = save_job_information(driver)
-            if user_id and st.session_state["job_dic"]:  # Ensure both exist
-                save_job_query(user_id, st.session_state["job_dic"])
-                st.success("This job has been saved")
-            else:
-                st.error("User ID or job data is missing.")
-            
-    with col3:
-        st.button("➡️ Next Job")
-            #next_job_posting(driver)  # Calls the function to scroll and click on the next job
-            #st.info("Moved to the next job posting.")
 
+    if st.button("💾 Save Job", key= 'yoyoyo'):
+        user_id = st.session_state.get("user_id")
+        #job_dic = save_job_information(driver)
+        if user_id and st.session_state["job_dic"]:  # Ensure both exist
+            save_job_query(user_id, st.session_state["job_dic"])
+            st.success("This job has been saved")
+        else:
+            st.error("User ID or job data is missing.")
+        
 
+#col1, col2,= st.columns(2)
+#st.button("🤖 Generate CV")
 atexit.register(lambda: conn.close())
 #conn.close() #closes connection
 
