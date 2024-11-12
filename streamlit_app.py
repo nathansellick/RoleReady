@@ -12,6 +12,7 @@ import datetime
 import streamlit as st
 import atexit
 from find_core_job_details import *
+from streamlit_functions import *
 from PIL import Image
 from streamlit_tags import st_tags
 from dotenv import load_dotenv
@@ -253,7 +254,45 @@ def find_certificate_entries():
     cursor.close()
     return result[0]
 
+def return_work_exp(n:int):
+    return_work_exp_query = """
+    SELECT * FROM work_experiences WHERE user_id = %s OFFSET %s LIMIT 1
+    """
+    cursor = conn.cursor()
+    cursor.execute(return_work_exp_query, (st.session_state['user_id'],n))
+    result = cursor.fetchone()
+    cursor.close()
+    return result
 
+def return_education(n:int):
+    return_education_query = """
+    SELECT * FROM education WHERE user_id = %s OFFSET %s LIMIT 1
+    """
+    cursor = conn.cursor()
+    cursor.execute(return_education_query, (st.session_state['user_id'],n))
+    result = cursor.fetchone()
+    cursor.close()
+    return result
+
+def return_projects(n:int):
+    return_projects_query = """
+    SELECT * FROM projects WHERE user_id = %s OFFSET %s LIMIT 1
+    """
+    cursor = conn.cursor()
+    cursor.execute(return_projects_query, (st.session_state['user_id'],n))
+    result = cursor.fetchone()
+    cursor.close()
+    return result
+
+def return_certifications(n:int):
+    return_certifications_query = """
+    SELECT * FROM certifications WHERE user_id = %s OFFSET %s LIMIT 1
+    """
+    cursor = conn.cursor()
+    cursor.execute(return_certifications_query, (st.session_state['user_id'],n))
+    result = cursor.fetchone()
+    cursor.close()
+    return result
 
 # CSS for dark blue background and tab styling
 st.markdown(
@@ -704,16 +743,36 @@ with tab3:
         
 
 #col1, col2,= st.columns(2)
-"""
+
     if st.button("🤖 Generate CV"):
         cv_data = {}
         for i in range(find_work_exp_entries()):
-            cv_data[f'work_exp_{i+1}_job_title'] 
-        print(find_work_exp_entries())
-        print(find_education_entries())
-        print(find_project_entries())
-        print(find_certificate_entries())
-"""
+            cv_data[f'work_exp_{i+1}_job_title'] = return_work_exp(i)[2]
+            cv_data[f'work_exp_{i+1}_company'] = return_work_exp(i)[3]
+            cv_data[f'work_exp_{i+1}_start_date'] = return_work_exp(i)[4]
+            cv_data[f'work_exp_{i+1}_end_date'] = return_work_exp(i)[5]
+            cv_data[f'work_exp_{i+1}_city'] = return_work_exp(i)[6]
+            cv_data[f'work_exp_{i+1}_country'] = return_work_exp(i)[7]
+            cv_data[f'work_exp_{i+1}_description'] = return_work_exp(i)[8]
+        for i in range(find_education_entries()):
+            cv_data[f'education_{i+1}_university'] = return_education(i)[2]
+            cv_data[f'education_{i+1}_degree'] = return_education(i)[3]
+            cv_data[f'education_{i+1}_grad_year'] = return_education(i)[4]
+            cv_data[f'education_{i+1}_grade'] = return_education(i)[5]
+        for i in range(find_project_entries()):
+            cv_data[f'project_{i+1}_start_date'] = return_projects(i)[2]
+            cv_data[f'project_{i+1}_end_date'] = return_projects(i)[3]
+            cv_data[f'project_{i+1}_description'] = return_projects(i)[4]
+        for i in range(find_certificate_entries()):
+            cv_data[f'certification_{i+1}'] = return_certifications(i)[2]
+
+        print(cv_data)
+        #print(cv_data)
+        #print(find_work_exp_entries())
+        #print(find_education_entries())
+        #print(find_project_entries())
+        #print(find_certificate_entries())
+
 atexit.register(lambda: conn.close())
 
 
