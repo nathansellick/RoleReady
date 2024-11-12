@@ -39,6 +39,8 @@ conn = psycopg2.connect(
     port=DB_PORT
 )
 
+client = openai.OpenAI(api_key = APIKEY)
+
 
 # Setup Chrome options to disable popups and redirections
 chrome_options = Options()
@@ -148,21 +150,31 @@ def insert_skills_query(user_id: int, skills_list: list):
 
 def save_job_query(user_id: int, job_dic: dict):
     insert_query_1 = """
-    INSERT INTO jobs(job_title, company_name, location, salary, employment_type, company_rating, link_to_application)
-    VALUES(%s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO jobs(job_title, company_name, location, salary, employment_type, job_description, company_rating, link_to_application)
+    VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
     """
     insert_query_2 = """
     INSERT INTO users_jobs(user_id, saved_date)
     VALUES(%s, %s)
     """
     cursor = conn.cursor()
-    cursor.execute(insert_query_1, (job_dic['job_title'], job_dic['company'], job_dic['location'], job_dic['salary'], job_dic['employment_type'], job_dic['company_rating'], job_dic['application_link']))
+    cursor.execute(insert_query_1, (job_dic['job_title'], job_dic['company'], job_dic['location'], job_dic['salary'], job_dic['employment_type'],
+                                    st.session_state['job_desc_summary'], job_dic['company_rating'], job_dic['application_link']))
     cursor.execute(insert_query_2, (user_id, current_date))
     conn.commit()
     cursor.close()
 
 def display_job_details():
     job_dic = st.session_state['job_dic']
+    job_description = job_dic['job_description']
+    job_description_prompt = f"""
+    In 200 words and In a single paragraph, summarise the job post, including all the important details such as company, position, pay, location, projects, skills and tools required. 
+    The job post is provided below, delimited by 3 backticks.
+    ```{job_description}```
+    """
+    job_desc_summary = get_completion(job_description_prompt)
+    st.session_state['job_desc_summary'] = job_desc_summary
+
 
     with st.expander("Job Details", expanded=True):
         
@@ -189,7 +201,8 @@ def display_job_details():
 
             #Job description
             st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color: white;'>{job_desc_summary}</p>", unsafe_allow_html=True)
+            #st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
             
             # Application link
             st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)

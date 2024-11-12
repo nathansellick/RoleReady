@@ -11,7 +11,7 @@ company_name VARCHAR(50),
 location VARCHAR(60),
 salary VARCHAR(25),
 employment_type VARCHAR(50),
-job_description VARCHAR(200),
+job_description VARCHAR(2000),
 company_rating VARCHAR(10),
 link_to_application VARCHAR(500)
 );
