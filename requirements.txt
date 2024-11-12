@@ -1,0 +1,17 @@
+streamlit
+selenium
+bs4
+undetected_chromedriver
+time
+pandas
+IPython.display
+json
+os
+openai
+subprocess
+psycopg2
+datetime
+atexit
+PIL
+streamlit_tags
+dotenv
