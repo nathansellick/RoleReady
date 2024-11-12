@@ -11,7 +11,7 @@ company_name VARCHAR(50),
 location VARCHAR(60),
 salary VARCHAR(25),
 employment_type VARCHAR(50),
-job_description VARCHAR(200),
+job_description VARCHAR(2000),
 company_rating VARCHAR(10),
 link_to_application VARCHAR(500)
 );
@@ -25,7 +25,7 @@ CREATE TABLE work_experiences (
     end_date DATE,
     city VARCHAR(60),
 	country VARCHAR(20),
-    job_description VARCHAR(200),
+    job_description VARCHAR(2000),
     PRIMARY KEY(user_id, work_experience_id),
 	FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
@@ -54,7 +54,7 @@ CREATE TABLE projects (
 	user_id INT,
     start_date DATE,
     end_Date DATE,
-    description VARCHAR(200),
+    description VARCHAR(2000),
     PRIMARY KEY(user_id, project_id),
 	FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
