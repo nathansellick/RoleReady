@@ -67,6 +67,7 @@ def get_completion(prompt, model="gpt-4o-mini", temperature=0):
     )
     return response.choices[0].message.content
 
+
 def insert_user(username: str, password: str):
     """
     insert new username and password into PostgreSQL database
@@ -303,6 +304,34 @@ def return_skills():
     result = cursor.fetchone()
     cursor.close()
     return result[0]
+
+def write_center(pdf, text : str, y_pos : float):
+  """Adds the title to the PDF at the specified position.
+
+  Args:
+    pdf: The PDF canvas object.
+    data: The dictionary containing the data.
+    y_pos: The y-position for the title.
+
+  """
+
+  # Get the width of the full name text
+  half_txt_width = pdf.stringWidth(text) / 2
+
+  # Calculate the center position based on page width and text width
+  center_x = (inch * 7 - half_txt_width) / 2
+
+  # Add the title
+  pdf.drawString(center_x, y_pos, text)
+
+  print('Creating pdf...')
+
+
+def draw_divider(pdf, line):
+    underline =  line + -0.1*inch
+    pdf.line(margin_start, underline, margin_end, underline)
+
+
 
 # CSS for dark blue background and tab styling
 st.markdown(
@@ -750,12 +779,20 @@ with tab3:
             st.success("This job has been saved")
         else:
             st.error("User ID or job data is missing.")
+    
+    with st.expander("Enter Details:", expanded=True):
+            st.session_state.full_name = st.text_input("Full Name",placeholder="Enter your full name", key = "give_full_name")
+            st.session_state.mobile_number = st.text_input("Mobile Number", placeholder="Enter mobile number", key = "give_mobile_number")
+            st.session_state.email = st.text_input("Email", placeholder="Enter email", key="give_email")
         
 
 #col1, col2,= st.columns(2)
 
     if st.button("🤖 Generate CV"):
         cv_data = {}
+        cv_data['full_name'] = st.session_state.full_name
+        cv_data['mobile_number'] = st.session_state.mobile_number 
+        cv_data['email'] = st.session_state.email
         for i in range(find_work_exp_entries()):
             cv_data[f'work_experience_{i+1}_job_title'] = return_work_exp(i)[2]
             cv_data[f'work_experience_{i+1}_company'] = return_work_exp(i)[3]
@@ -775,11 +812,119 @@ with tab3:
             cv_data[f'project_{i+1}_description'] = return_projects(i)[4]
         for i in range(find_certificate_entries()):
             cv_data[f'certification_{i+1}'] = return_certifications(i)[2]
-        cv_data['skills'] = return_skills()
+        cv_data['skills'] = "\n".join(return_skills())
         cv_data['application_job_title'] = st.session_state['job_dic']['job_title']
         cv_data['application_company_name'] = st.session_state['job_dic']['company']
         cv_data['application_job_description']  =  st.session_state['job_desc_summary']
+
+        # Create a new PDF document
+        pdf = canvas.Canvas('prototype_cv.pdf')
+
+        page_width = 8.3*inch
+        page_len = 11.7*inch
+        pdf.setPageSize([page_width, page_len])
+
+        current_line = 11*inch
+        new_line = -0.3 * inch
+        new_line_s = -0.2 * inch
+        new_section = -0.6 * inch
+        margin_start = 0.5 * inch
+        # page_width = pdf.pagesize[0] / inch
+        margin_end = page_width - 0.5*inch
+        indent = '    '
+
+        # Set font and font size
+        pdf.setFont("Helvetica", 12)
+
+        # write_center(pdf, data['full-name'].upper(), 11*inch)
+
+        pdf.drawCentredString(300, current_line, cv_data['full_name'].upper())
+
+        current_line += new_line
+
+        ## SUBTITLE ##
+        subtitle = cv_data['mobile_number'] + ' • ' + cv_data['email']
+        pdf.drawCentredString(300, current_line, subtitle)
+
+        ### SKILLS ###
+        current_line += new_section
+        pdf.drawString(margin_start, current_line, "SKILLS")
+        draw_divider(pdf, current_line)
+        current_line += new_line
+
+        pdf.drawString(margin_start, current_line, cv_data['skills'])
+
+        ### WORK EXPERIENCE ###
+        current_line += new_section
+        pdf.drawString(margin_start, current_line, "WORK EXPERIENCE")
+        draw_divider(pdf, current_line)
+        current_line += new_line
+
+        for i in range(find_work_exp_entries()):
+            pdf.drawString(margin_start, current_line, cv_data[f'work_experience_{i+1}_job_title'])
+            current_line += new_line_s
+            pdf.drawString(margin_start, current_line, cv_data[f'work_experience_{i+1}_company'])
+            current_line += new_line_s
+            pdf.drawString(margin_start, current_line, (cv_data[f'work_experience_{i+1}_start_date']).strftime("%Y-%m-%d") + " - " + (cv_data[f'work_experience_{i+1}_end_date']).strftime("%Y-%m-%d"))
+            current_line += new_line_s
+            pdf.drawString(margin_start, current_line, indent+cv_data[f'work_experience_{i+1}_description'])
+            current_line += new_line
+
         
+        ### EDUCATION ###
+        current_line += new_section
+        pdf.drawString(margin_start, current_line, "EDUCATION")
+        draw_divider(pdf, current_line)
+
+        for i in range(find_education_entries()):
+            current_line += new_line
+            pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_degree'])
+            current_line += new_line_s
+            pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_university'])
+            current_line += new_line_s
+            pdf.drawString(margin_start, current_line, str(cv_data[f'education_{i+1}_grad_year']))
+            current_line += new_line_s
+            pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_grade'])
+
+        ### PROJECTS ###
+        current_line += new_section
+        pdf.drawString(margin_start, current_line, "PROJECTS")
+        draw_divider(pdf, current_line)
+        current_line += new_line
+
+        for i in range(find_project_entries()):
+            pdf.drawString(margin_start, current_line, f'Project_{i+1}')
+            current_line += new_line_s
+            pdf.drawString(margin_start, current_line, indent+cv_data[f'project_{i+1}_description'])
+
+        ### CERTIFICATIONS ###
+        current_line += new_section
+        pdf.drawString(margin_start, current_line, "CERTIFICATIONS")
+        draw_divider(pdf, current_line)
+
+        for i in range(find_certificate_entries()):
+            current_line += new_line
+            pdf.drawString(margin_start, current_line, cv_data[f'certification_{i+1}'])
+
+        # Save the PDF
+        pdf.save()
+
+        print('pdf ready')
+            
+
+
+
+
+
+
+
+
+        
+        
+
+
+
+           
 
 
 atexit.register(lambda: conn.close())
