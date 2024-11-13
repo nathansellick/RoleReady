@@ -22,19 +22,13 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib import pagesizes
 
-# Constants for margins and max width for wrapping
-#max_width = 400  # Maximum width for each line in points (adjust based on your page layout)
-#line_height = 14  # Height of each line
-
-
-
-# Load the environment variables from the .env file
+# Load the environment variables from the .env file including PostgreSQL database and apikey
 load_dotenv()
 
 # Get the current date
 current_date = datetime.date.today()
 
-# Retrieve the environment variables
+# Retrieve the PostgreSQL environment variables
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
@@ -42,7 +36,7 @@ DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
 APIKEY = os.getenv('APIKEY')
 
-# Now you can use the loaded environment variables to connect to your database
+# Connect to PostgreSQL database
 conn = psycopg2.connect(
     dbname=DB_NAME,
     user=DB_USER,
@@ -51,6 +45,7 @@ conn = psycopg2.connect(
     port=DB_PORT
 )
 
+# Object for using openai 
 client = openai.OpenAI(api_key = APIKEY)
 
 
@@ -188,39 +183,37 @@ def display_job_details():
     job_desc_summary = get_completion(job_description_prompt)
     st.session_state['job_desc_summary'] = job_desc_summary
 
-
     with st.expander("Job Details", expanded=True):
+        # Job Title
+        st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Title</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['job_title']}</h3>", unsafe_allow_html=True)
+
+        # Company
+        st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Company</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['company']}</h3>", unsafe_allow_html=True)
+    
+        #Location 
+        st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Location</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['location']}</h3>", unsafe_allow_html=True)
         
-            
-            # Job Title
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Title</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['job_title']}</h3>", unsafe_allow_html=True)
-
-            # Company
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Company</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['company']}</h3>", unsafe_allow_html=True)
+        # Employment type
+        st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Employment Type</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['employment_type']}</h3>", unsafe_allow_html=True)
         
-            #Location 
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Location</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['location']}</h3>", unsafe_allow_html=True)
-            
-            # Employment type
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Employment Type</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['employment_type']}</h3>", unsafe_allow_html=True)
-          
-            # Salary
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Salary</h2>", unsafe_allow_html=True)
-            st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['salary']}</h3>", unsafe_allow_html=True)
+        # Salary
+        st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Salary</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['salary']}</h3>", unsafe_allow_html=True)
 
-            #Job description
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
-            st.markdown(f"<p style='color: white;'>{job_desc_summary}</p>", unsafe_allow_html=True)
-            #st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
-            
-            # Application link
-            st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
-            st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
+        #Job description
+        st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_desc_summary}</p>", unsafe_allow_html=True)
+        #st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
+        
+        # Application link
+        st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
+        st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
 
+        
 def find_work_exp_entries():
     select_work_exp_query = """
     SELECT COUNT(work_experience_id) FROM work_experiences WHERE user_id = %s
@@ -340,7 +333,7 @@ def draw_divider(pdf, line):
 
 
 
-# CSS for dark blue background and tab styling
+# CSS for dark blue background and tab styling for Streamlit app
 st.markdown(
     """
     <style>
@@ -403,7 +396,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Custom CSS to style the labels
+# Custom CSS to style the labels in app
 st.markdown("""
     <style>
         /* Change the color of labels to white */
@@ -773,35 +766,30 @@ with tab3:
         else:
             st.error("Please start the job search first by clicking 'Job Search'.")
                     
-
-
-    # Buttons with icons for additional functionality
     st.markdown("---")  # Divider line for visual separation
 
     if st.button("💾 Save Job", key= 'yoyoyo'):
         user_id = st.session_state.get("user_id")
-        #job_dic = save_job_information(driver)
         if user_id and st.session_state["job_dic"]:  # Ensure both exist
             save_job_query(user_id, st.session_state["job_dic"])
             st.success("This job has been saved")
         else:
             st.error("User ID or job data is missing.")
     
+    # Enter name and contact details for CV creation
     with st.expander("Enter Details:", expanded=True):
             st.session_state.full_name = st.text_input("Full Name",placeholder="Enter your full name", key = "give_full_name")
             st.session_state.mobile_number = st.text_input("Mobile Number", placeholder="Enter mobile number", key = "give_mobile_number")
             st.session_state.email = st.text_input("Email", placeholder="Enter email", key="give_email")
-        
-
-#col1, col2,= st.columns(2)
 
     if st.button("🤖 Generate CV"):
-        cv_data = {}
+        cv_data = {} # Create dictionary containing all data used for cv generation
         wrapped_text = {}
         cv_data['full_name'] = st.session_state.full_name
         cv_data['mobile_number'] = st.session_state.mobile_number 
         cv_data['email'] = st.session_state.email
-        for i in range(find_work_exp_entries()):
+        # Store all work experience user info in cv_data dictionary 
+        for i in range(find_work_exp_entries()): 
             cv_data[f'work_experience_{i+1}_job_title'] = return_work_exp(i)[2]
             cv_data[f'work_experience_{i+1}_company'] = return_work_exp(i)[3]
             cv_data[f'work_experience_{i+1}_start_date'] = return_work_exp(i)[4]
@@ -810,38 +798,50 @@ with tab3:
             cv_data[f'work_experience_{i+1}_country'] = return_work_exp(i)[7]
             cv_data[f'work_experience_{i+1}_description'] = return_work_exp(i)[8]
 
+        # Store all education user info in cv_data dictionary 
         for i in range(find_education_entries()):
             cv_data[f'education_{i+1}_university'] = return_education(i)[2]
             cv_data[f'education_{i+1}_degree'] = return_education(i)[3]
             cv_data[f'education_{i+1}_grad_year'] = return_education(i)[4]
             cv_data[f'education_{i+1}_grade'] = return_education(i)[5]
+
+        # Store all project user info in cv_data dictionary 
         for i in range(find_project_entries()):
             cv_data[f'project_{i+1}_start_date'] = return_projects(i)[2]
             cv_data[f'project_{i+1}_end_date'] = return_projects(i)[3]
             cv_data[f'project_{i+1}_description'] = return_projects(i)[4]
+
+        # Store all certification user info in cv_data dictionary
         for i in range(find_certificate_entries()):
             cv_data[f'certification_{i+1}'] = return_certifications(i)[2]
-        cv_data['skills'] = "\n".join(return_skills())
-        #cv_data['application_job_title'] = st.session_state['job_dic']['job_title']
-        #cv_data['application_company_name'] = st.session_state['job_dic']['company']
-        #cv_data['application_job_description']  =  st.session_state['job_desc_summary']
 
+        # Create one string containing all skills separated by commas and store in cv_data dictionary
+        cv_data['skills'] = ', '.join(return_skills())
+
+        # Store summarised job_description that user is applying for in cv_data dictionary
+        cv_data['application_job_description']  =  st.session_state['job_desc_summary']
+
+        # Prompt for creating profile for user based on job they are applying for and then store in cv_data dictionary
+        cv_profile_prompt = f"""
+            In 30-50 words could you write a CV profile paragraph for {cv_data['full_name']} tailored to the following job description: {cv_data['application_job_description']}.
+            {cv_data['full_name']}'s full set of CV skills are: {cv_data['skills']}.
+            """
+        cv_data['profile'] = get_completion(cv_profile_prompt)
+        
         # Create a new PDF document
         pdf = canvas.Canvas('prototype_cv.pdf')
 
+        # PDF dimensions
         page_width = 8.3*inch
         page_len = 11.7*inch
         pdf.setPageSize([page_width, page_len])
-
         current_line = 11*inch
         new_line = -0.3 * inch
         new_line_s = -0.2 * inch
         new_section = -0.4 * inch
         margin_start = 0.5 * inch
-        # page_width = pdf.pagesize[0] / inch
         margin_end = page_width - 0.5*inch
         indent = '    '
-        #line_height = 14  # Height of each line
 
         # Set font and font size
         pdf.setFont("Helvetica", 10)
@@ -849,34 +849,50 @@ with tab3:
         # Maximum width for text (based on your PDF dimensions)
         max_width = margin_end - margin_start  # Full width minus the margins
 
-
-        # write_center(pdf, data['full-name'].upper(), 11*inch)
-
+        # Full name of user displayed at top of CV
         pdf.drawCentredString(300, current_line, cv_data['full_name'].upper())
 
         current_line += new_line
 
         ## SUBTITLE ##
+        # contains contact info
         subtitle = cv_data['mobile_number'] + ' • ' + cv_data['email']
         pdf.drawCentredString(300, current_line, subtitle)
 
+        ## PROFILE ##
+        current_line += new_section
+        pdf.drawString(margin_start, current_line, "PROFILE")
+        draw_divider(pdf, current_line)
+        current_line += new_line
+        wrapped_profile_text = textwrap.wrap(cv_data['profile'], width=int(max_width/4.5))
+        # Display line by line profile created for user
+        for line in wrapped_profile_text:
+                pdf.drawString(margin_start, current_line, line)
+                current_line += new_line_s
+
         ### WORK EXPERIENCE ###
+        current_line += -new_line
         current_line += new_section
         pdf.drawString(margin_start, current_line, "WORK EXPERIENCE")
         draw_divider(pdf, current_line)
         current_line += new_line
 
         for i in range(find_work_exp_entries()):
-            pdf.setFont("Helvetica-Bold", 10)
+            pdf.setFont("Helvetica-Bold", 10) # change font
+            # Display work experience job title and company
             pdf.drawString(margin_start, current_line, cv_data[f'work_experience_{i+1}_job_title'] + ", " + cv_data[f'work_experience_{i+1}_company'] + ", ")
             job_title_and_company_text_width = pdf.stringWidth(cv_data[f'work_experience_{i+1}_job_title'] + ", " + cv_data[f'work_experience_{i+1}_company'] + ", ", "Helvetica-Bold", 10)
             start_pos = margin_start + job_title_and_company_text_width
-            pdf.setFont("Helvetica-Oblique", 10)
-            #current_line += new_line_s
+
+            pdf.setFont("Helvetica-Oblique", 10) # change font
+
+            # Display start and end date of work experience on same line as preious in italic
             pdf.drawString(start_pos, current_line, (cv_data[f'work_experience_{i+1}_start_date']).strftime("%Y-%m-%d") + " - " + (cv_data[f'work_experience_{i+1}_end_date']).strftime("%Y-%m-%d"))
-            pdf.setFont("Helvetica", 10)
+            pdf.setFont("Helvetica", 10) # back to original font
             current_line += new_line_s
+
             wrapped_work_exp_text = textwrap.wrap(cv_data[f'work_experience_{i+1}_description'], width=int(max_width/4.75))
+            # Display line by line each work experience description for user
             for line in wrapped_work_exp_text:
                 pdf.drawString(margin_start, current_line, indent + line)
                 current_line += new_line_s
@@ -891,18 +907,16 @@ with tab3:
 
         for i in range(find_education_entries()):
             current_line += new_line
+            # Display university name
             pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_university'] + ", ")
             university_text_width = pdf.stringWidth( cv_data[f'education_{i+1}_university'] + ", ", "Helvetica", 10)
             start_pos = margin_start + university_text_width
+
+            # Display university degree and grade
             pdf.setFont("Helvetica-Bold", 10)
             pdf.drawString(start_pos, current_line, cv_data[f'education_{i+1}_degree'] + " | " + cv_data[f'education_{i+1}_grade'])
             pdf.setFont("Helvetica", 10)
-            #current_line += new_line_s
-            #pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_university'])
-            #current_line += new_line_s
-            #pdf.drawString(margin_start, current_line, str(cv_data[f'education_{i+1}_grad_year']))
-            #current_line += new_line_s
-            #pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_grade'])
+
 
         ### PROJECTS ###
         current_line += new_section
@@ -911,18 +925,21 @@ with tab3:
         current_line += new_line
 
         for i in range(find_project_entries()):
+            # Configure and display each project description line by line
             wrapped_project_text = textwrap.wrap(cv_data[f'project_{i+1}_description'], width=int(max_width/4.75))
             for line in wrapped_project_text:
                 pdf.drawString(margin_start, current_line, line)
                 current_line += new_line_s
-
-            #pdf.drawString(margin_start, current_line, cv_data[f'project_{i+1}_description'])
+            current_line += -new_line_s
+            current_line += new_line
 
         ### CERTIFICATIONS ###
+        current_line += -new_line
         current_line += new_section
         pdf.drawString(margin_start, current_line, "CERTIFICATIONS")
         draw_divider(pdf, current_line)
 
+        # Display each certification
         for i in range(find_certificate_entries()):
             current_line += new_line
             pdf.drawString(margin_start, current_line, cv_data[f'certification_{i+1}'])
@@ -933,6 +950,7 @@ with tab3:
         draw_divider(pdf, current_line)
         current_line += new_line
 
+        # Display all skills
         pdf.drawString(margin_start, current_line, cv_data['skills'])
 
         # Save the PDF
@@ -943,19 +961,7 @@ with tab3:
 
 
 
-
-
-
-
-
-        
-        
-
-
-
-           
-
-
+# Close PostgreSQL connection
 atexit.register(lambda: conn.close())
 
 
