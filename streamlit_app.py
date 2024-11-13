@@ -294,6 +294,16 @@ def return_certifications(n:int):
     cursor.close()
     return result
 
+def return_skills():
+    return_skills_query = """
+    SELECT skill FROM skills WHERE user_id = %s
+    """
+    cursor = conn.cursor()
+    cursor.execute(return_skills_query, (st.session_state['user_id'],))
+    result = cursor.fetchone()
+    cursor.close()
+    return result[0]
+
 # CSS for dark blue background and tab styling
 st.markdown(
     """
@@ -613,7 +623,7 @@ with tab2:
                 st.experimental_rerun()  # Refresh the page to reflect the addition
 
                  # Button to save all education entries to the database
-            if st.button("Save Projects to Database"):
+            if st.button("Save Projects to Database"): ######
                 user_id = st.session_state["user_id"]
                 for project in st.session_state.projects.values():
                     insert_project_entry(user_id, project)
@@ -747,13 +757,13 @@ with tab3:
     if st.button("🤖 Generate CV"):
         cv_data = {}
         for i in range(find_work_exp_entries()):
-            cv_data[f'work_exp_{i+1}_job_title'] = return_work_exp(i)[2]
-            cv_data[f'work_exp_{i+1}_company'] = return_work_exp(i)[3]
-            cv_data[f'work_exp_{i+1}_start_date'] = return_work_exp(i)[4]
-            cv_data[f'work_exp_{i+1}_end_date'] = return_work_exp(i)[5]
-            cv_data[f'work_exp_{i+1}_city'] = return_work_exp(i)[6]
-            cv_data[f'work_exp_{i+1}_country'] = return_work_exp(i)[7]
-            cv_data[f'work_exp_{i+1}_description'] = return_work_exp(i)[8]
+            cv_data[f'work_experience_{i+1}_job_title'] = return_work_exp(i)[2]
+            cv_data[f'work_experience_{i+1}_company'] = return_work_exp(i)[3]
+            cv_data[f'work_experience_{i+1}_start_date'] = return_work_exp(i)[4]
+            cv_data[f'work_experience_{i+1}_end_date'] = return_work_exp(i)[5]
+            cv_data[f'work_experience_{i+1}_city'] = return_work_exp(i)[6]
+            cv_data[f'work_experience_{i+1}_country'] = return_work_exp(i)[7]
+            cv_data[f'work_experience_{i+1}_description'] = return_work_exp(i)[8]
         for i in range(find_education_entries()):
             cv_data[f'education_{i+1}_university'] = return_education(i)[2]
             cv_data[f'education_{i+1}_degree'] = return_education(i)[3]
@@ -765,13 +775,12 @@ with tab3:
             cv_data[f'project_{i+1}_description'] = return_projects(i)[4]
         for i in range(find_certificate_entries()):
             cv_data[f'certification_{i+1}'] = return_certifications(i)[2]
+        cv_data['skills'] = return_skills()
+        cv_data['application_job_title'] = st.session_state['job_dic']['job_title']
+        cv_data['application_company_name'] = st.session_state['job_dic']['company']
+        cv_data['application_job_description']  =  st.session_state['job_desc_summary']
+        
 
-        print(cv_data)
-        #print(cv_data)
-        #print(find_work_exp_entries())
-        #print(find_education_entries())
-        #print(find_project_entries())
-        #print(find_certificate_entries())
 
 atexit.register(lambda: conn.close())
 
