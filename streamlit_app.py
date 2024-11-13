@@ -535,7 +535,12 @@ with tab2:
                     work_experience['country'] = st.text_input("", work_experience.get('country', ''), key=f"country_{key}")
 
                 st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-                work_experience['job_description'] = st.text_input("", work_experience.get('job_description', ''), key=f"job_description_{key}")
+                work_experience['job_description'] = st.text_area(
+                label="", 
+                value=work_experience.get('job_description', ''),
+                key=f"job_description_{key}",
+                height=150  # Adjust this number to make the box taller
+                    )
 
                 # Add the Remove Work Experience button
                 if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_experience_{key}"):
@@ -634,7 +639,12 @@ with tab2:
                     project['end_date'] = st.text_input("", project.get('end_date', ''), key=f"project_end_date_{index}")
 
                 st.markdown('<span style="color: white;">Project Description</span>', unsafe_allow_html=True)
-                project['description'] = st.text_input("", project.get('description', ''), key=f"project_description_{index}")
+                project['description'] = st.text_area(
+                label="", 
+                value=project.get('description', ''),
+                key=f"project_description_{key}",
+                height=150  
+                    )
 
                 # Add the Remove Education button
                 if st.button(f"Remove Project {index + 1}", key=f"remove_project_{key}"):
