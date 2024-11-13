@@ -11,6 +11,7 @@ import psycopg2
 import datetime
 import streamlit as st
 import atexit
+import textwrap
 from find_core_job_details import *
 from streamlit_functions import *
 from PIL import Image
@@ -19,6 +20,12 @@ from dotenv import load_dotenv
 from streamlit import session_state as state
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
+from reportlab.lib import pagesizes
+
+# Constants for margins and max width for wrapping
+#max_width = 400  # Maximum width for each line in points (adjust based on your page layout)
+#line_height = 14  # Height of each line
+
 
 
 # Load the environment variables from the .env file
@@ -790,6 +797,7 @@ with tab3:
 
     if st.button("🤖 Generate CV"):
         cv_data = {}
+        wrapped_text = {}
         cv_data['full_name'] = st.session_state.full_name
         cv_data['mobile_number'] = st.session_state.mobile_number 
         cv_data['email'] = st.session_state.email
@@ -801,6 +809,7 @@ with tab3:
             cv_data[f'work_experience_{i+1}_city'] = return_work_exp(i)[6]
             cv_data[f'work_experience_{i+1}_country'] = return_work_exp(i)[7]
             cv_data[f'work_experience_{i+1}_description'] = return_work_exp(i)[8]
+
         for i in range(find_education_entries()):
             cv_data[f'education_{i+1}_university'] = return_education(i)[2]
             cv_data[f'education_{i+1}_degree'] = return_education(i)[3]
@@ -813,9 +822,9 @@ with tab3:
         for i in range(find_certificate_entries()):
             cv_data[f'certification_{i+1}'] = return_certifications(i)[2]
         cv_data['skills'] = "\n".join(return_skills())
-        cv_data['application_job_title'] = st.session_state['job_dic']['job_title']
-        cv_data['application_company_name'] = st.session_state['job_dic']['company']
-        cv_data['application_job_description']  =  st.session_state['job_desc_summary']
+        #cv_data['application_job_title'] = st.session_state['job_dic']['job_title']
+        #cv_data['application_company_name'] = st.session_state['job_dic']['company']
+        #cv_data['application_job_description']  =  st.session_state['job_desc_summary']
 
         # Create a new PDF document
         pdf = canvas.Canvas('prototype_cv.pdf')
@@ -827,14 +836,19 @@ with tab3:
         current_line = 11*inch
         new_line = -0.3 * inch
         new_line_s = -0.2 * inch
-        new_section = -0.6 * inch
+        new_section = -0.4 * inch
         margin_start = 0.5 * inch
         # page_width = pdf.pagesize[0] / inch
         margin_end = page_width - 0.5*inch
         indent = '    '
+        #line_height = 14  # Height of each line
 
         # Set font and font size
-        pdf.setFont("Helvetica", 12)
+        pdf.setFont("Helvetica", 10)
+
+        # Maximum width for text (based on your PDF dimensions)
+        max_width = margin_end - margin_start  # Full width minus the margins
+
 
         # write_center(pdf, data['full-name'].upper(), 11*inch)
 
@@ -846,14 +860,6 @@ with tab3:
         subtitle = cv_data['mobile_number'] + ' • ' + cv_data['email']
         pdf.drawCentredString(300, current_line, subtitle)
 
-        ### SKILLS ###
-        current_line += new_section
-        pdf.drawString(margin_start, current_line, "SKILLS")
-        draw_divider(pdf, current_line)
-        current_line += new_line
-
-        pdf.drawString(margin_start, current_line, cv_data['skills'])
-
         ### WORK EXPERIENCE ###
         current_line += new_section
         pdf.drawString(margin_start, current_line, "WORK EXPERIENCE")
@@ -861,30 +867,42 @@ with tab3:
         current_line += new_line
 
         for i in range(find_work_exp_entries()):
-            pdf.drawString(margin_start, current_line, cv_data[f'work_experience_{i+1}_job_title'])
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(margin_start, current_line, cv_data[f'work_experience_{i+1}_job_title'] + ", " + cv_data[f'work_experience_{i+1}_company'] + ", ")
+            job_title_and_company_text_width = pdf.stringWidth(cv_data[f'work_experience_{i+1}_job_title'] + ", " + cv_data[f'work_experience_{i+1}_company'] + ", ", "Helvetica-Bold", 10)
+            start_pos = margin_start + job_title_and_company_text_width
+            pdf.setFont("Helvetica-Oblique", 10)
+            #current_line += new_line_s
+            pdf.drawString(start_pos, current_line, (cv_data[f'work_experience_{i+1}_start_date']).strftime("%Y-%m-%d") + " - " + (cv_data[f'work_experience_{i+1}_end_date']).strftime("%Y-%m-%d"))
+            pdf.setFont("Helvetica", 10)
             current_line += new_line_s
-            pdf.drawString(margin_start, current_line, cv_data[f'work_experience_{i+1}_company'])
-            current_line += new_line_s
-            pdf.drawString(margin_start, current_line, (cv_data[f'work_experience_{i+1}_start_date']).strftime("%Y-%m-%d") + " - " + (cv_data[f'work_experience_{i+1}_end_date']).strftime("%Y-%m-%d"))
-            current_line += new_line_s
-            pdf.drawString(margin_start, current_line, indent+cv_data[f'work_experience_{i+1}_description'])
-            current_line += new_line
+            wrapped_work_exp_text = textwrap.wrap(cv_data[f'work_experience_{i+1}_description'], width=int(max_width/4.75))
+            for line in wrapped_work_exp_text:
+                pdf.drawString(margin_start, current_line, indent + line)
+                current_line += new_line_s
+
 
         
         ### EDUCATION ###
+        current_line += -new_line_s
         current_line += new_section
         pdf.drawString(margin_start, current_line, "EDUCATION")
         draw_divider(pdf, current_line)
 
         for i in range(find_education_entries()):
             current_line += new_line
-            pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_degree'])
-            current_line += new_line_s
-            pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_university'])
-            current_line += new_line_s
-            pdf.drawString(margin_start, current_line, str(cv_data[f'education_{i+1}_grad_year']))
-            current_line += new_line_s
-            pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_grade'])
+            pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_university'] + ", ")
+            university_text_width = pdf.stringWidth( cv_data[f'education_{i+1}_university'] + ", ", "Helvetica", 10)
+            start_pos = margin_start + university_text_width
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(start_pos, current_line, cv_data[f'education_{i+1}_degree'] + " | " + cv_data[f'education_{i+1}_grade'])
+            pdf.setFont("Helvetica", 10)
+            #current_line += new_line_s
+            #pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_university'])
+            #current_line += new_line_s
+            #pdf.drawString(margin_start, current_line, str(cv_data[f'education_{i+1}_grad_year']))
+            #current_line += new_line_s
+            #pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_grade'])
 
         ### PROJECTS ###
         current_line += new_section
@@ -893,9 +911,12 @@ with tab3:
         current_line += new_line
 
         for i in range(find_project_entries()):
-            pdf.drawString(margin_start, current_line, f'Project_{i+1}')
-            current_line += new_line_s
-            pdf.drawString(margin_start, current_line, indent+cv_data[f'project_{i+1}_description'])
+            wrapped_project_text = textwrap.wrap(cv_data[f'project_{i+1}_description'], width=int(max_width/4.75))
+            for line in wrapped_project_text:
+                pdf.drawString(margin_start, current_line, line)
+                current_line += new_line_s
+
+            #pdf.drawString(margin_start, current_line, cv_data[f'project_{i+1}_description'])
 
         ### CERTIFICATIONS ###
         current_line += new_section
@@ -905,6 +926,14 @@ with tab3:
         for i in range(find_certificate_entries()):
             current_line += new_line
             pdf.drawString(margin_start, current_line, cv_data[f'certification_{i+1}'])
+
+        ### SKILLS ###
+        current_line += new_section
+        pdf.drawString(margin_start, current_line, "SKILLS")
+        draw_divider(pdf, current_line)
+        current_line += new_line
+
+        pdf.drawString(margin_start, current_line, cv_data['skills'])
 
         # Save the PDF
         pdf.save()
