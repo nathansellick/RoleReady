@@ -60,7 +60,10 @@ chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
 # Defining functions
 
-def get_completion(prompt, model="gpt-4o-mini", temperature=0):
+def get_completion(prompt: str, model="gpt-4o-mini", temperature=0):
+    """
+    return openAI's response to given prompt as a string
+    """
     messages = [{"role": "user", "content": prompt}]
     response = client.chat.completions.create(
         model=model,
@@ -143,6 +146,9 @@ def insert_certification_entry(user_id: int, certification: dict):
     cursor.close()
 
 def insert_skills_query(user_id: int, skills_list: list):
+    """
+    Function inserts users inputted skills into database
+    """
     # Convert the Python list to the PostgreSQL array format
     skills_array = '{' + ','.join(f'"{skill}"' for skill in skills_list) + '}'
     insert_query = """
@@ -157,6 +163,9 @@ def insert_skills_query(user_id: int, skills_list: list):
     cursor.close()
 
 def save_job_query(user_id: int, job_dic: dict):
+    """
+    Saves current displayed job to database for user
+    """
     insert_query_1 = """
     INSERT INTO jobs(job_title, company_name, location, salary, employment_type, job_description, company_rating, link_to_application)
     VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
@@ -173,6 +182,9 @@ def save_job_query(user_id: int, job_dic: dict):
     cursor.close()
 
 def display_job_details():
+    """
+    Function to display the current web-scraped job from Indeed into Streamlit app
+    """
     job_dic = st.session_state['job_dic']
     job_description = job_dic['job_description']
     job_description_prompt = f"""
@@ -213,44 +225,12 @@ def display_job_details():
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
         st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
 
-        
-def find_work_exp_entries():
-    select_work_exp_query = """
-    SELECT COUNT(work_experience_id) FROM work_experiences WHERE user_id = %s
+def count_sql_entries(select_count_query: str):
+    """
+    Finds count of entries for user whether it be work experiences, education, etc based on query inputted into function
     """
     cursor = conn.cursor()
-    cursor.execute(select_work_exp_query, (st.session_state['user_id'],))
-    result = cursor.fetchone()
-    cursor.close()
-    return result[0]
-
-
-def find_education_entries():
-    select_education_query = """
-    SELECT COUNT(education_id) FROM education WHERE user_id = %s
-    """
-    cursor = conn.cursor()
-    cursor.execute(select_education_query, (st.session_state['user_id'],))
-    result = cursor.fetchone()
-    cursor.close()
-    return result[0]
-
-def find_project_entries():
-    select_project_query = """
-    SELECT COUNT(project_id) FROM projects WHERE user_id = %s
-    """
-    cursor = conn.cursor()
-    cursor.execute(select_project_query, (st.session_state['user_id'],))
-    result = cursor.fetchone()
-    cursor.close()
-    return result[0]
-
-def find_certificate_entries():
-    select_certificate_query = """
-    SELECT COUNT(certification_id) FROM certifications WHERE user_id = %s
-    """
-    cursor = conn.cursor()
-    cursor.execute(select_certificate_query, (st.session_state['user_id'],))
+    cursor.execute(select_count_query, (st.session_state['user_id'],))
     result = cursor.fetchone()
     cursor.close()
     return result[0]
@@ -304,6 +284,22 @@ def return_skills():
     result = cursor.fetchone()
     cursor.close()
     return result[0]
+
+def return_saved_jobs():
+    """Return saved jobs for user_id from PostgreSQL
+    """
+    return_saved_jobs_query = """
+    select j.job_title, j.company_name, j.link_to_application  from jobs as j
+    join users_jobs as u on j.job_id = u.job_id
+    where u.user_id = %s;
+    """
+    cursor = conn.cursor()
+    cursor.execute(return_saved_jobs_query, (st.session_state['user_id'],))
+    results = cursor.fetchall()
+    cursor.close()
+    return results
+
+
 
 def write_center(pdf, text : str, y_pos : float):
   """Adds the title to the PDF at the specified position.
@@ -432,7 +428,7 @@ if 'skills' not in st.session_state:
 
 
 # Create multiple tabs for application
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Home", "Resume", "Job Search", "Saved", "Help"])
+tab1, tab2, tab3, tab4 = st.tabs(["Home", "Resume", "Job Search", "Saved"])
 
 with tab1:
     # Center-align the image with Streamlit layout
@@ -535,7 +531,12 @@ with tab2:
                     work_experience['country'] = st.text_input("", work_experience.get('country', ''), key=f"country_{key}")
 
                 st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-                work_experience['job_description'] = st.text_input("", work_experience.get('job_description', ''), key=f"job_description_{key}")
+                work_experience['job_description'] = st.text_area(
+                label="", 
+                value=work_experience.get('job_description', ''),
+                key=f"job_description_{key}",
+                height=150  # Adjust this number to make the box taller
+                    )
 
                 # Add the Remove Work Experience button
                 if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_experience_{key}"):
@@ -634,7 +635,12 @@ with tab2:
                     project['end_date'] = st.text_input("", project.get('end_date', ''), key=f"project_end_date_{index}")
 
                 st.markdown('<span style="color: white;">Project Description</span>', unsafe_allow_html=True)
-                project['description'] = st.text_input("", project.get('description', ''), key=f"project_description_{index}")
+                project['description'] = st.text_area(
+                label="", 
+                value=project.get('description', ''),
+                key=f"project_description_{key}",
+                height=150  
+                    )
 
                 # Add the Remove Education button
                 if st.button(f"Remove Project {index + 1}", key=f"remove_project_{key}"):
@@ -707,9 +713,9 @@ with tab2:
             skills = st_tags(
                 label='',
                 text='Add a skill...',
-                value=st.session_state.skills,  # Pre-populate with existing skills
-                suggestions=[],  # You can add skill suggestions if needed
-                maxtags=10,  # Limit to 10 skills (optional)
+                value=st.session_state.skills,
+                suggestions=[], 
+                maxtags=20,  # Limit to 20 skills
                 key='skills_input'
             )
 
@@ -788,8 +794,9 @@ with tab3:
         cv_data['full_name'] = st.session_state.full_name
         cv_data['mobile_number'] = st.session_state.mobile_number 
         cv_data['email'] = st.session_state.email
+       
         # Store all work experience user info in cv_data dictionary 
-        for i in range(find_work_exp_entries()): 
+        for i in range(count_sql_entries('SELECT COUNT(work_experience_id) FROM work_experiences WHERE user_id = %s')):
             cv_data[f'work_experience_{i+1}_job_title'] = return_work_exp(i)[2]
             cv_data[f'work_experience_{i+1}_company'] = return_work_exp(i)[3]
             cv_data[f'work_experience_{i+1}_start_date'] = return_work_exp(i)[4]
@@ -798,21 +805,33 @@ with tab3:
             cv_data[f'work_experience_{i+1}_country'] = return_work_exp(i)[7]
             cv_data[f'work_experience_{i+1}_description'] = return_work_exp(i)[8]
 
+        # Joining all work experiences descriptions into one string for tailored CV creation
+        for i in range(count_sql_entries('SELECT COUNT(work_experience_id) FROM work_experiences WHERE user_id = %s')):
+            cv_data['work_exp_description_joined'] = 'NEXT JOB: '.join(cv_data[f'work_experience_{i+1}_description'])
+        
         # Store all education user info in cv_data dictionary 
-        for i in range(find_education_entries()):
+        for i in range(count_sql_entries('SELECT COUNT(education_id) FROM education WHERE user_id = %s')):
             cv_data[f'education_{i+1}_university'] = return_education(i)[2]
             cv_data[f'education_{i+1}_degree'] = return_education(i)[3]
             cv_data[f'education_{i+1}_grad_year'] = return_education(i)[4]
             cv_data[f'education_{i+1}_grade'] = return_education(i)[5]
 
+        # Joining all education degree titles into one string for tailored CV creation
+        for i in range(count_sql_entries('SELECT COUNT(education_id) FROM education WHERE user_id = %s')):
+            cv_data['educations_degrees_joined'] = 'NEXT DEGREE: '.join(cv_data[f'education_{i+1}_degree'])
+
         # Store all project user info in cv_data dictionary 
-        for i in range(find_project_entries()):
+        for i in range(count_sql_entries('SELECT COUNT(project_id) FROM projects WHERE user_id = %s')):
             cv_data[f'project_{i+1}_start_date'] = return_projects(i)[2]
             cv_data[f'project_{i+1}_end_date'] = return_projects(i)[3]
             cv_data[f'project_{i+1}_description'] = return_projects(i)[4]
 
+        # Joining all project descriptions into one string for tailored CV creation
+        for i in range(count_sql_entries('SELECT COUNT(project_id) FROM projects WHERE user_id = %s')):
+            cv_data['projects_descriptions_joined'] = 'NEXT JOB: '.join(cv_data[f'project_{i+1}_description'])
+
         # Store all certification user info in cv_data dictionary
-        for i in range(find_certificate_entries()):
+        for i in range(count_sql_entries('SELECT COUNT(certification_id) FROM certifications WHERE user_id = %s')):
             cv_data[f'certification_{i+1}'] = return_certifications(i)[2]
 
         # Create one string containing all skills separated by commas and store in cv_data dictionary
@@ -823,9 +842,10 @@ with tab3:
 
         # Prompt for creating profile for user based on job they are applying for and then store in cv_data dictionary
         cv_profile_prompt = f"""
-            In 30-50 words could you write a CV profile paragraph for {cv_data['full_name']} tailored to the following job description: {cv_data['application_job_description']}.
-            {cv_data['full_name']}'s full set of CV skills are: {cv_data['skills']}.
-            """
+            In 50-70 words could you write a CV profile paragraph for {cv_data['full_name']} using their real personal skills and experiences provided below. Make sure you word it so it tailors to the following job description: 
+            {cv_data['application_job_description']}.
+            {cv_data['full_name']}'s full set of skills and descriptions of their previous work experience roles are given following this delimited by three backticks respectively:
+            ```{cv_data['skills']}``` , ```{cv_data['work_exp_description_joined']}```. ```{cv_data['educations_degrees_joined']}```, ```{cv_data['projects_descriptions_joined']}```"""
         cv_data['profile'] = get_completion(cv_profile_prompt)
         
         # Create a new PDF document
@@ -877,7 +897,7 @@ with tab3:
         draw_divider(pdf, current_line)
         current_line += new_line
 
-        for i in range(find_work_exp_entries()):
+        for i in range(count_sql_entries('SELECT COUNT(work_experience_id) FROM work_experiences WHERE user_id = %s')):
             pdf.setFont("Helvetica-Bold", 10) # change font
             # Display work experience job title and company
             pdf.drawString(margin_start, current_line, cv_data[f'work_experience_{i+1}_job_title'] + ", " + cv_data[f'work_experience_{i+1}_company'] + ", ")
@@ -905,7 +925,7 @@ with tab3:
         pdf.drawString(margin_start, current_line, "EDUCATION")
         draw_divider(pdf, current_line)
 
-        for i in range(find_education_entries()):
+        for i in range(count_sql_entries('SELECT COUNT(education_id) FROM education WHERE user_id = %s')):
             current_line += new_line
             # Display university name
             pdf.drawString(margin_start, current_line, cv_data[f'education_{i+1}_university'] + ", ")
@@ -924,7 +944,7 @@ with tab3:
         draw_divider(pdf, current_line)
         current_line += new_line
 
-        for i in range(find_project_entries()):
+        for i in range(count_sql_entries('SELECT COUNT(project_id) FROM projects WHERE user_id = %s')):
             # Configure and display each project description line by line
             wrapped_project_text = textwrap.wrap(cv_data[f'project_{i+1}_description'], width=int(max_width/4.75))
             for line in wrapped_project_text:
@@ -940,7 +960,7 @@ with tab3:
         draw_divider(pdf, current_line)
 
         # Display each certification
-        for i in range(find_certificate_entries()):
+        for i in range(count_sql_entries('SELECT COUNT(certification_id) FROM certifications WHERE user_id = %s')):
             current_line += new_line
             pdf.drawString(margin_start, current_line, cv_data[f'certification_{i+1}'])
 
@@ -951,12 +971,39 @@ with tab3:
         current_line += new_line
 
         # Display all skills
-        pdf.drawString(margin_start, current_line, cv_data['skills'])
+        wrapped_skills_text = cv_data['skills'] = textwrap.wrap(cv_data['skills'], width=int(max_width/4.5))
+        for line in wrapped_skills_text: 
+            pdf.drawString(margin_start, current_line, line)
+            current_line += new_line_s
 
         # Save the PDF
         pdf.save()
 
         print('pdf ready')
+
+with tab4:
+    if st.button('Display Saved Jobs'):
+        # Initialise lists as empty
+        job_title_list = []
+        company_list = []
+        job_link_list = []
+        # Return list of saved jobs for user
+        for i in return_saved_jobs():
+            #append list with each job title, company and job_link
+            job_title_list.append(i[0])
+            company_list.append(i[1]) 
+            job_link_list.append(i[2])
+        saved_job_df=pd.DataFrame({
+            'Job Title': job_title_list,
+            'Company': company_list,
+            'Job Link': job_link_list
+            })
+        
+        st.dataframe(saved_job_df)
+            
+        
+    
+    
             
 
 
