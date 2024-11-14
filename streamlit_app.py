@@ -60,7 +60,10 @@ chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 
 # Defining functions
 
-def get_completion(prompt, model="gpt-4o-mini", temperature=0):
+def get_completion(prompt: str, model="gpt-4o-mini", temperature=0):
+    """
+    return openAI's response to given prompt as a string
+    """
     messages = [{"role": "user", "content": prompt}]
     response = client.chat.completions.create(
         model=model,
@@ -143,6 +146,9 @@ def insert_certification_entry(user_id: int, certification: dict):
     cursor.close()
 
 def insert_skills_query(user_id: int, skills_list: list):
+    """
+    Function inserts users inputted skills into database
+    """
     # Convert the Python list to the PostgreSQL array format
     skills_array = '{' + ','.join(f'"{skill}"' for skill in skills_list) + '}'
     insert_query = """
@@ -157,6 +163,9 @@ def insert_skills_query(user_id: int, skills_list: list):
     cursor.close()
 
 def save_job_query(user_id: int, job_dic: dict):
+    """
+    Saves current displayed job to database for user
+    """
     insert_query_1 = """
     INSERT INTO jobs(job_title, company_name, location, salary, employment_type, job_description, company_rating, link_to_application)
     VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
@@ -173,6 +182,9 @@ def save_job_query(user_id: int, job_dic: dict):
     cursor.close()
 
 def display_job_details():
+    """
+    Function to display the current web-scraped job from Indeed into Streamlit app
+    """
     job_dic = st.session_state['job_dic']
     job_description = job_dic['job_description']
     job_description_prompt = f"""
@@ -213,8 +225,20 @@ def display_job_details():
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
         st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
 
-        
+def count_sql_entries(select_count_query: str):
+    """
+    Finds count of entries for user whether it be work experiences, education, etc based on query inputted into function
+    """
+    cursor = conn.cursor()
+    cursor.execute(select_count_query, (st.session_state['user_id'],))
+    result = cursor.fetchone()
+    cursor.close()
+    return result[0]
+
 def find_work_exp_entries():
+    """
+    Finds count of work experience entries for user
+    """
     select_work_exp_query = """
     SELECT COUNT(work_experience_id) FROM work_experiences WHERE user_id = %s
     """
@@ -226,6 +250,9 @@ def find_work_exp_entries():
 
 
 def find_education_entries():
+    """
+    Finds count of education entries for user
+    """
     select_education_query = """
     SELECT COUNT(education_id) FROM education WHERE user_id = %s
     """
@@ -236,6 +263,9 @@ def find_education_entries():
     return result[0]
 
 def find_project_entries():
+    """
+    Finds count of project entries for user
+    """
     select_project_query = """
     SELECT COUNT(project_id) FROM projects WHERE user_id = %s
     """
@@ -808,12 +838,20 @@ with tab3:
             cv_data[f'work_experience_{i+1}_country'] = return_work_exp(i)[7]
             cv_data[f'work_experience_{i+1}_description'] = return_work_exp(i)[8]
 
+        # Joining all work experiences descriptions into one string for tailored CV creation
+        for i in range(find_work_exp_entries()):
+            cv_data['work_exp_description_joined'] = 'NEXT JOB: '.join(cv_data[f'work_experience_{i+1}_description'])
+
         # Store all education user info in cv_data dictionary 
         for i in range(find_education_entries()):
             cv_data[f'education_{i+1}_university'] = return_education(i)[2]
             cv_data[f'education_{i+1}_degree'] = return_education(i)[3]
             cv_data[f'education_{i+1}_grad_year'] = return_education(i)[4]
             cv_data[f'education_{i+1}_grade'] = return_education(i)[5]
+
+        # Joining all education degree titles into one string for tailored CV creation
+        for i in range(find_education_entries()):
+            cv_data['educations_degrees_joined'] = 'NEXT DEGREE: '.join(cv_data[f'education_{i+1}_degree'])
 
         # Store all project user info in cv_data dictionary 
         for i in range(find_project_entries()):
@@ -825,6 +863,10 @@ with tab3:
         for i in range(find_certificate_entries()):
             cv_data[f'certification_{i+1}'] = return_certifications(i)[2]
 
+        # Joining all project descriptions into one string for tailored CV creation
+        for i in range(find_project_entries()):
+            cv_data['projects_descriptions_joined'] = 'NEXT JOB: '.join(cv_data[f'project_{i+1}_description'])
+
         # Create one string containing all skills separated by commas and store in cv_data dictionary
         cv_data['skills'] = ', '.join(return_skills())
 
@@ -833,8 +875,9 @@ with tab3:
 
         # Prompt for creating profile for user based on job they are applying for and then store in cv_data dictionary
         cv_profile_prompt = f"""
-            In 30-50 words could you write a CV profile paragraph for {cv_data['full_name']} tailored to the following job description: {cv_data['application_job_description']}.
-            {cv_data['full_name']}'s full set of CV skills are: {cv_data['skills']}.
+            In 50-70 words could you write a CV profile paragraph for {cv_data['full_name']} tailored to the following job description and user's personal skills and work experiences: {cv_data['application_job_description']}.
+            {cv_data['full_name']}'s full set of skills and descriptions of their previous work experience roles are given following this delimited by three backticks respectively.
+            ```{cv_data['skills']}``` , ```{cv_data['work_exp_description_joined']}```.
             """
         cv_data['profile'] = get_completion(cv_profile_prompt)
         
