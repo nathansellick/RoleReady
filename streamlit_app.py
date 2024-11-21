@@ -1,4 +1,4 @@
-# pip install streamlit_tags
+# pip install PyPDF2 
 # pip install reportlab
 
 # Import packages
@@ -21,6 +21,7 @@ from streamlit import session_state as state
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib import pagesizes
+from PyPDF2 import PdfReader
 
 # Load the environment variables from the .env file including PostgreSQL database and apikey
 load_dotenv()
@@ -405,30 +406,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state for work experiences if not already initialized
-if 'work_experiences' not in st.session_state:
-    st.session_state.work_experiences = {}
-
-# Initialize session state for education if not already initialized
-if 'education_entries' not in st.session_state:
-    st.session_state.education_entries = {}
-
-# Initialize session state for projects if not already initialized
-if 'projects' not in st.session_state:
-    st.session_state.projects = {}
-
-# Initialize session state for projects if not already initialized
-if 'certifications' not in st.session_state:
-    st.session_state.certifications = {}
-
-# Initialize session state for skills if not already initialized
-if 'skills' not in st.session_state:
-    st.session_state.skills = []
-
-
 
 # Create multiple tabs for application
-tab1, tab2, tab3, tab4 = st.tabs(["Home", "Resume", "Job Search", "Saved"])
+tab1, tab2, tab3, tab4= st.tabs(["Home", "Job Search", "Saved", "PDF upload"])
 
 with tab1:
     # Center-align the image with Streamlit layout
@@ -499,242 +479,8 @@ with tab1:
                 
   
 
+
 with tab2:
-    st.markdown('<h2 style="color: white;">Work Experience</h2>', unsafe_allow_html=True)
-
-    # Check if the user is logged in by checking if user_id exists in session_state
-    if 'user_id' in st.session_state:
-        with st.expander("Add Work Experience", expanded=True):
-            # Loop through each work experience entry stored in session_state
-            for index, (key, work_experience) in enumerate(st.session_state.work_experiences.items()):
-                st.markdown(f'<h4 style="color: white;">Work Experience {index + 1}</h4>', unsafe_allow_html=True)
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    st.markdown('<span style="color: white;">Job Title</span>', unsafe_allow_html=True)
-                    work_experience['job_title'] = st.text_input("", work_experience.get('job_title', ''), key=f"job_title_{key}")
-
-                    st.markdown('<span style="color: white;">Start Date</span>', unsafe_allow_html=True)
-                    work_experience['start_date'] = st.text_input("", work_experience.get('start_date', ''), key=f"job_start_date_{key}")
-
-                    st.markdown('<span style="color: white;">City</span>', unsafe_allow_html=True)
-                    work_experience['city'] = st.text_input("", work_experience.get('city', ''), key=f"city_{key}")
-
-                with col2:
-                    st.markdown('<span style="color: white;">Company</span>', unsafe_allow_html=True)
-                    work_experience['company'] = st.text_input("", work_experience.get('company', ''), key=f"company_{key}")
-
-                    st.markdown('<span style="color: white;">End Date</span>', unsafe_allow_html=True)
-                    work_experience['end_date'] = st.text_input("", work_experience.get('end_date', ''), key=f"job_end_date_{key}")
-
-                    st.markdown('<span style="color: white;">Country</span>', unsafe_allow_html=True)
-                    work_experience['country'] = st.text_input("", work_experience.get('country', ''), key=f"country_{key}")
-
-                st.markdown('<span style="color: white;">Job Description</span>', unsafe_allow_html=True)
-                work_experience['job_description'] = st.text_area(
-                label="", 
-                value=work_experience.get('job_description', ''),
-                key=f"job_description_{key}",
-                height=150  # Adjust this number to make the box taller
-                    )
-
-                # Add the Remove Work Experience button
-                if st.button(f"Remove Work Experience {index + 1}", key=f"remove_work_experience_{key}"):
-                    st.session_state.work_experiences.pop(key)
-                    st.experimental_rerun()  # Refresh the page to reflect the removal
-
-            # Button to add a new education entry
-            if st.button("Add Work Experience"):
-                new_key = f"school_{len(st.session_state.work_experiences) + 1}"
-                st.session_state.work_experiences[new_key] = {
-                    "job_title": "",
-                    "company": "",
-                    "start_date": "",
-                    "end_date": "",
-                    "city":"",
-                    "country":"",
-                    "job_description":""
-                }
-                st.experimental_rerun()  # Refresh the page to reflect the addition
-
-            # Button to save all education entries to the database
-            if st.button("Save Work Experiences to Database"):
-                user_id = st.session_state["user_id"]
-                for work_experience in st.session_state.work_experiences.values():
-                    insert_work_exp_entry(user_id, work_experience)
-                st.success("All work experiences have been saved to the database.")
-
-    else:
-        st.info("Please log in to add your education details.")
-
-
-    st.markdown('<h2 style="color: white;">Education</h2>', unsafe_allow_html=True)
-    # Check if the user is logged in by checking if user_id exists in session_state
-    if 'user_id' in st.session_state:
-        with st.expander("Add Education", expanded=True):
-            # Loop through each education entry stored in session_state
-            for index, (key, education) in enumerate(st.session_state.education_entries.items()):
-                st.markdown(f'<h4 style="color: white;">Education {index + 1}</h4>', unsafe_allow_html=True)
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    # Display labels in white and input fields below
-                    st.markdown('<span style="color: white;">University</span>', unsafe_allow_html=True)
-                    education['university'] = st.text_input("", education.get('university', ''), key=f"university_{key}")
-
-                    st.markdown('<span style="color: white;">Degree</span>', unsafe_allow_html=True)
-                    education['degree'] = st.text_input("", education.get('degree', ''), key=f"degree_{key}")
-
-                with col2:
-                    st.markdown('<span style="color: white;">Graduation Year</span>', unsafe_allow_html=True)
-                    education['grad_year'] = st.text_input("", education.get('grad_year', ''), key=f"graduation_year_{key}")
-
-                    st.markdown('<span style="color: white;">Grade</span>', unsafe_allow_html=True)
-                    education['grade'] = st.text_input("", education.get('grade', ''), key=f"grade_{key}")
-
-                # Add the Remove Education button
-                if st.button(f"Remove Education {index + 1}", key=f"remove_education_{key}"):
-                    st.session_state.education_entries.pop(key)
-                    st.experimental_rerun()  # Refresh the page to reflect the removal
-
-            # Button to add a new education entry
-            if st.button("Add Education"):
-                new_key = f"school_{len(st.session_state.education_entries) + 1}"
-                st.session_state.education_entries[new_key] = {
-                    "university": "",
-                    "degree": "",
-                    "graduation year": "",
-                    "grade": ""
-                }
-                st.experimental_rerun()  # Refresh the page to reflect the addition
-
-            # Button to save all education entries to the database
-            if st.button("Save Education Entries to Database"):
-                user_id = st.session_state["user_id"]
-                for education in st.session_state.education_entries.values():
-                    insert_education_entry(user_id, education)
-                st.success("All education entries have been saved to the database.")
-
-    else:
-        st.info("Please log in to add your education details.")
-
-    
-    st.markdown('<h2 style="color: white;">Projects</h2>', unsafe_allow_html=True)
-    # Check if user is logged in 
-    if 'user_id' in st.session_state:
-        with st.expander("Add Project", expanded=True):
-            # Loop through each project entry stored in session_state
-            for index, (key, project) in enumerate(st.session_state.projects.items()):
-                st.markdown(f'<h4 style="color: white;">Project {index + 1}</h4>', unsafe_allow_html=True)
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown('<span style="color: white;">Start Date</span>', unsafe_allow_html=True)
-                    project['start_date'] = st.text_input("", project.get('start_date', ''), key=f"project_start_date_{index}")
-                with col2:
-                    st.markdown('<span style="color: white;">End Date</span>', unsafe_allow_html=True)
-                    project['end_date'] = st.text_input("", project.get('end_date', ''), key=f"project_end_date_{index}")
-
-                st.markdown('<span style="color: white;">Project Description</span>', unsafe_allow_html=True)
-                project['description'] = st.text_area(
-                label="", 
-                value=project.get('description', ''),
-                key=f"project_description_{key}",
-                height=150  
-                    )
-
-                # Add the Remove Education button
-                if st.button(f"Remove Project {index + 1}", key=f"remove_project_{key}"):
-                    st.session_state.projects.pop(key)
-                    st.experimental_rerun()  # Refresh the page to reflect the removal
-
-            # Button to add a new education entry
-            if st.button("Add Project"):
-                new_key = f"school_{len(st.session_state.projects) + 1}"
-                st.session_state.projects[new_key] = {
-                    "start_date": "",
-                    "end_date": "",
-                    "description": ""
-                }
-                st.experimental_rerun()  # Refresh the page to reflect the addition
-
-                 # Button to save all education entries to the database
-            if st.button("Save Projects to Database"): ######
-                user_id = st.session_state["user_id"]
-                for project in st.session_state.projects.values():
-                    insert_project_entry(user_id, project)
-                st.success("All project entries have been saved to the database.")
-
-    else:
-        st.info("Please log in to add your projects.")
-
-
-    
-    st.markdown('<h2 style="color: white;">Certifications</h2>', unsafe_allow_html=True)
-
-    if 'user_id' in st.session_state:
-        with st.expander("Add Certification", expanded=True):
-            # Loop through each project entry stored in session_state
-            for index, (key, certification) in enumerate(st.session_state.certifications.items()):
-                st.markdown(f'<h4 style="color: white;">Certiciate {index + 1}</h4>', unsafe_allow_html=True)
-
-                st.markdown('<span style="color: white;">Certificate Title</span>', unsafe_allow_html=True)
-                certification['title'] = st.text_input("", certification.get('title', ''), key=f"certificate_{index}")
-
-                # Add the Remove Education button
-                if st.button(f"Remove Certification {index + 1}", key=f"remove_certification_{key}"):
-                    st.session_state.certifications.pop(key)
-                    st.experimental_rerun()  # Refresh the page to reflect the removal
-
-            # Button to add a new certification
-            if st.button("Add Certification"):
-                new_key = f"school_{len(st.session_state.certifications) + 1}"
-                st.session_state.certifications[new_key] = {
-                    "title":""
-                }
-                st.experimental_rerun()  # Refresh the page to reflect the addition
-
-            if st.button("Save Certifications to Database"):
-                user_id = st.session_state["user_id"]
-                for certification in st.session_state.certifications.values():
-                    insert_certification_entry(user_id, certification)
-                st.success("All certifications have been saved to the database.")
-
-    else:
-        st.info("Please log in to add your certifications.")
-
-
-
-    st.markdown('<h2 style="color: white;">Skills</h2>', unsafe_allow_html=True)
-    if 'user_id' in st.session_state:
-        with st.expander("Add Skills", expanded=True):
-        
-
-            # Use st_tags to create an input field for adding skills
-            skills = st_tags(
-                label='',
-                text='Add a skill...',
-                value=st.session_state.skills,
-                suggestions=[], 
-                maxtags=20,  # Limit to 20 skills
-                key='skills_input'
-            )
-
-            # Store the skills back into the session state after modification
-            st.session_state.skills = skills
-
-            # Display the skills in a tag format
-            if st.session_state.skills:
-                st.markdown('<h4 style="color: white;">Your Skills:</h4>', unsafe_allow_html=True)
-                for skill in st.session_state.skills:
-                    st.markdown(f'<span style="display:inline-block; background-color:#0072B2; color:white; padding:5px 10px; border-radius:5px; margin:5px;">{skill}</span>', unsafe_allow_html=True)
-
-            if st.button("Save Skills to Database"):
-                user_id = st.session_state["user_id"]
-                insert_skills_query(user_id,st.session_state.skills)
-                st.success("Your skills have been saved to the database.")
-    else:
-        st.info("Please log in to add your skills.")
-with tab3:
 
     st.markdown('<h2 style="color: white;">Job Search</h2>', unsafe_allow_html=True)
     job_title_search = st.text_input("Job Title", placeholder="Enter job title")
@@ -981,7 +727,7 @@ with tab3:
 
         print('pdf ready')
 
-with tab4:
+with tab3:
     if st.button('Display Saved Jobs'):
         # Initialise lists as empty
         job_title_list = []
@@ -1000,6 +746,20 @@ with tab4:
             })
         
         st.dataframe(saved_job_df)
+
+with tab4: 
+    uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
+
+    if st.button("Push button") and uploaded_file is not None:
+        # Read the uploaded PDF file
+        reader = PdfReader(uploaded_file)
+        pdf_text = ""
+        for page in reader.pages:
+            pdf_text += page.extract_text()
+        
+        # Display the extracted text
+        st.subheader("Extracted Text:")
+        st.write(pdf_text)
             
         
     
