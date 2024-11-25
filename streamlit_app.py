@@ -1,5 +1,6 @@
 # pip install PyPDF2 
 # pip install reportlab
+# pip install pymongo
 
 # Import packages
 import pandas as pd
@@ -22,6 +23,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib import pagesizes
 from PyPDF2 import PdfReader
+from pymongo import MongoClient
 
 # Load the environment variables from the .env file including PostgreSQL database and apikey
 load_dotenv()
@@ -35,7 +37,6 @@ DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 DB_PORT = os.getenv('DB_PORT')
-APIKEY = os.getenv('APIKEY')
 
 # Connect to PostgreSQL database
 conn = psycopg2.connect(
@@ -46,8 +47,17 @@ conn = psycopg2.connect(
     port=DB_PORT
 )
 
+# Retrieve API key
+APIKEY = os.getenv('APIKEY')
+
 # Object for using openai 
 client = openai.OpenAI(api_key = APIKEY)
+
+# Connect to MongoDB cluster
+mongo_client = MongoClient(os.getenv('MONGO_CLUSTER'))
+
+role_ready_cv_db = mongo_client['role_ready']
+collection = role_ready_cv_db['cvs']
 
 
 # Setup Chrome options to disable popups and redirections
@@ -89,79 +99,6 @@ def insert_user(username: str, password: str):
     st.success(f"Account created for {username}!")
     cursor.close() # closes cursor object
 
-def insert_work_exp_entry(user_id: int, work_experience: dict):
-    """
-    Function inserts inputted work experience information for user into database
-    """
-    user_id = st.session_state['user_id']
-    insert_query = """
-    INSERT INTO work_experiences(user_id, job_title, company, start_date, end_date, city, country, job_description)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    """
-    cursor = conn.cursor()
-    cursor.execute(insert_query, (user_id, work_experience['job_title'], work_experience['company'], work_experience['start_date'], work_experience['end_date'],work_experience['city'],
-                                  work_experience['country'],work_experience['job_description']))
-    conn.commit()
-    cursor.close()
-
-def insert_education_entry(user_id: int, education: dict):
-    """
-    Function inserts inputted education information for user into database
-    """
-    user_id = st.session_state['user_id']
-    insert_query = """
-    INSERT INTO education(user_id, university, degree, graduation_year, grade)
-    VALUES (%s, %s, %s, %s, %s)
-    """
-    cursor = conn.cursor()
-    cursor.execute(insert_query, (user_id, education['university'], education['degree'], education['grad_year'], education['grade']))
-    conn.commit()
-    cursor.close()
-
-def insert_project_entry(user_id: int, project: dict):
-    """
-    Function inserts inputted project information for user into database
-    """
-    user_id = st.session_state['user_id']
-    insert_query = """
-    INSERT INTO projects(user_id, start_date, end_date, description)
-    VALUES (%s, %s, %s, %s)
-    """
-    cursor = conn.cursor()
-    cursor.execute(insert_query, (user_id, project['start_date'], project['end_date'], project['description']))
-    conn.commit()
-    cursor.close()
-
-def insert_certification_entry(user_id: int, certification: dict):
-    """
-    Function inserts inputted certifications for user into database
-    """
-    user_id = st.session_state['user_id']
-    insert_query = """
-    INSERT INTO certifications(user_id, certificate)
-    VALUES (%s, %s)
-    """
-    cursor = conn.cursor()
-    cursor.execute(insert_query, (user_id, certification['title']))
-    conn.commit()
-    cursor.close()
-
-def insert_skills_query(user_id: int, skills_list: list):
-    """
-    Function inserts users inputted skills into database
-    """
-    # Convert the Python list to the PostgreSQL array format
-    skills_array = '{' + ','.join(f'"{skill}"' for skill in skills_list) + '}'
-    insert_query = """
-    INSERT INTO skills(user_id, skill)
-    VALUES (%s, %s)
-    ON CONFLICT (user_id) DO UPDATE
-    SET skill = EXCLUDED.skill
-    """
-    cursor = conn.cursor()
-    cursor.execute(insert_query,(user_id, skills_array))
-    conn.commit()
-    cursor.close()
 
 def save_job_query(user_id: int, job_dic: dict):
     """
@@ -226,65 +163,7 @@ def display_job_details():
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
         st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
 
-def count_sql_entries(select_count_query: str):
-    """
-    Finds count of entries for user whether it be work experiences, education, etc based on query inputted into function
-    """
-    cursor = conn.cursor()
-    cursor.execute(select_count_query, (st.session_state['user_id'],))
-    result = cursor.fetchone()
-    cursor.close()
-    return result[0]
 
-def return_work_exp(n:int):
-    return_work_exp_query = """
-    SELECT * FROM work_experiences WHERE user_id = %s OFFSET %s LIMIT 1
-    """
-    cursor = conn.cursor()
-    cursor.execute(return_work_exp_query, (st.session_state['user_id'],n))
-    result = cursor.fetchone()
-    cursor.close()
-    return result
-
-def return_education(n:int):
-    return_education_query = """
-    SELECT * FROM education WHERE user_id = %s OFFSET %s LIMIT 1
-    """
-    cursor = conn.cursor()
-    cursor.execute(return_education_query, (st.session_state['user_id'],n))
-    result = cursor.fetchone()
-    cursor.close()
-    return result
-
-def return_projects(n:int):
-    return_projects_query = """
-    SELECT * FROM projects WHERE user_id = %s OFFSET %s LIMIT 1
-    """
-    cursor = conn.cursor()
-    cursor.execute(return_projects_query, (st.session_state['user_id'],n))
-    result = cursor.fetchone()
-    cursor.close()
-    return result
-
-def return_certifications(n:int):
-    return_certifications_query = """
-    SELECT * FROM certifications WHERE user_id = %s OFFSET %s LIMIT 1
-    """
-    cursor = conn.cursor()
-    cursor.execute(return_certifications_query, (st.session_state['user_id'],n))
-    result = cursor.fetchone()
-    cursor.close()
-    return result
-
-def return_skills():
-    return_skills_query = """
-    SELECT skill FROM skills WHERE user_id = %s
-    """
-    cursor = conn.cursor()
-    cursor.execute(return_skills_query, (st.session_state['user_id'],))
-    result = cursor.fetchone()
-    cursor.close()
-    return result[0]
 
 def return_saved_jobs():
     """Return saved jobs for user_id from PostgreSQL
@@ -750,7 +629,7 @@ with tab3:
 with tab4: 
     uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 
-    if st.button("Push button") and uploaded_file is not None:
+    if st.button("Test CV read") and uploaded_file is not None:
         # Read the uploaded PDF file
         reader = PdfReader(uploaded_file)
         pdf_text = ""
@@ -760,6 +639,12 @@ with tab4:
         # Display the extracted text
         st.subheader("Extracted Text:")
         st.write(pdf_text)
+    
+    if st.button("Insert MongoDB data"):
+        #data = [{"name": "Ben", "age": 22, "siblings":[{"name":"John", "age":28},{"name": "Sophie", "age":19}]}]
+        #collection.insert_many(data)
+        print('Button works')
+        
             
         
     
