@@ -18,7 +18,7 @@ from streamlit_functions import *
 from PIL import Image
 from streamlit_tags import st_tags
 from dotenv import load_dotenv
-from streamlit import session_state as state
+from streamlit import session_state
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from reportlab.lib import pagesizes
@@ -84,34 +84,70 @@ def get_completion(prompt: str, model="gpt-4o-mini", temperature=0):
     return response.choices[0].message.content
 
 
-def insert_user(username: str, password: str):
+def create_user(username: str, password: str):
     """
-    insert new username and password into PostgreSQL database
+    Checks if username already exists. If it does exist error is raised, if it does not,
+    new username and password is inserted into PostgreSQL database
     """
-    # Parameterized query to prevent SQL injection
+    select_user_count_query = ''' SELECT COUNT(user_name) from users WHERE user_name = %s'''
+    cursor = conn.cursor()
+    cursor.execute(select_user_count_query, (username,))
+    num_of_users = cursor.fetchone()[0]
+    if num_of_users == 0:
+        # Query to insert new user into table
+        insert_user_query = '''
+        INSERT INTO users (user_name, user_password)
+        VALUES (%s, %s)
+        '''
+        cursor.execute(insert_user_query, (username, password))
+        conn.commit()  # Commit the transaction
+        st.success(f"Account created for {username}!")
+    else:
+        st.error("Account already exists")
+    cursor.close() # closes cursor object
+
+
+def user_login(username: str, password: str):
+    """
+    Checks if user already exists in database; stores user_id in session state if it does exist, raises error if it does not exist.
+    """ 
     sql_query = '''
-    INSERT INTO users (user_name, user_password)
-    VALUES (%s, %s)
+    SELECT user_id FROM users
+    WHERE user_name = %s AND user_password = %s
     '''
     cursor = conn.cursor()
     cursor.execute(sql_query, (username, password))
-    conn.commit()  # Commit the transaction
-    st.success(f"Account created for {username}!")
-    cursor.close() # closes cursor object
+    result = cursor.fetchone()
+    if result:
+        # Store user_id in session state if login is successful
+        st.session_state["user_id"] = result[0]
+        st.success(f"Welcome back, {username}!")
+    else:
+        st.error("Invalid username or password.")
+    
+    cursor.close()
+
+
+def user_logout():
+    """
+    Logs the user out by clearing the user_id from session state.
+    """
+    del st.session_state["user_id"]
+    st.success("You have been logged out.")
 
 
 def save_job_query(user_id: int, job_dic: dict):
     """
-    Saves current displayed job to database for user
+    Saves current displayed job to PostgreSQL database for user
     """
-    insert_query_1 = """
+    insert_query_1 = '''
     INSERT INTO jobs(job_title, company_name, location, salary, employment_type, job_description, company_rating, link_to_application)
     VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
-    """
-    insert_query_2 = """
+    '''
+    insert_query_2 = '''
     INSERT INTO users_jobs(user_id, saved_date)
     VALUES(%s, %s)
-    """
+    '''
     cursor = conn.cursor()
     cursor.execute(insert_query_1, (job_dic['job_title'], job_dic['company'], job_dic['location'], job_dic['salary'], job_dic['employment_type'],
                                     st.session_state['job_desc_summary'], job_dic['company_rating'], job_dic['application_link']))
@@ -298,63 +334,32 @@ with tab1:
     st.markdown("<h2 style='color: white;'>Create an Account</h2>", unsafe_allow_html=True)
 
     # Input fields for username and password
-    username = st.text_input("Username", placeholder="Enter your username", key = "create_account_username")
-    password = st.text_input("Password", placeholder="Enter your password", type="password", key = "create_account_password")
+    username_create_account_input = st.text_input("Username", placeholder="Enter your username", key = "create_account_username")
+    password_create_account_input = st.text_input("Password", placeholder="Enter your password", type="password", key = "create_account_password")
 
     # Button to create account and add user to PostgreSQL database
     if st.button("Create Account"):
-        cursor = conn.cursor()
-        select_user_count_query = """SELECT COUNT(user_name) from users 
-        WHERE user_name = %s """
-        cursor.execute(select_user_count_query, (username,))
-        result = cursor.fetchone()
-        num_of_users = result[0]
-        if num_of_users == 0:
-            insert_user(username, password)
-        else:
-            st.error("Account already exists")
+        create_user(username_create_account_input, password_create_account_input)
     
-
     # Login section
     st.markdown("<h2 style='color: white;'>Login</h2>", unsafe_allow_html=True)
 
     # Input fields for username and password login
-    username_login = st.text_input("Username", placeholder="Enter your username", key = "login_username")
-    password_login = st.text_input("Password", placeholder="Enter your password", type="password", key="login_password")
+    username_login_input = st.text_input("Username", placeholder="Enter your username", key = "login_username")
+    password_login_input = st.text_input("Password", placeholder="Enter your password", type="password", key="login_password")
 
     # Button to login
     col1, col2 = st.columns(2)
 
     with col1:
         if st.button("Login"):
-        
-            # Query to authenticate the user
-            login_query = '''
-            SELECT user_id FROM users
-            WHERE user_name = %s AND user_password = %s
-            '''
-            cursor = conn.cursor()
-            cursor.execute(login_query, (username_login, password_login))
-            result = cursor.fetchone()
-            
-            if result:
-                # Store user_id in session state if login is successful
-                state["user_id"] = result[0]
-                st.success(f"Welcome back, {username_login}!")
-            else:
-                st.error("Invalid username or password.")
-            
-            cursor.close()
+            user_login(username_login_input, password_login_input)
 
     with col2:
-    
         if "user_id" in st.session_state:
             # Display the logout button if the user is logged in
             if st.button("Logout"):
-                # Clear the session state to log out the user
-                for key in st.session_state.keys():
-                    del st.session_state[key]
-                st.success("You have been logged out.")
+               user_logout()
                 
   
 
