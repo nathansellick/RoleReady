@@ -238,11 +238,11 @@ def write_center(pdf, text : str, y_pos : float):
 
   print('Creating pdf...')
 
-
+"""
 def draw_divider(pdf, line):
     underline =  line + -0.1*inch
     pdf.line(margin_start, underline, margin_end, underline)
-
+"""
 
 
 # CSS for dark blue background and tab styling for Streamlit app
@@ -367,6 +367,17 @@ with tab2:
     st.markdown('<h2 style="color: white;">Job Search</h2>', unsafe_allow_html=True)
     job_title_search = st.text_input("Job Title", placeholder="Enter job title")
     location_search = st.text_input("Location", placeholder="Enter location")
+
+    if st.button("Job Search Test"):
+        driver = uc.Chrome(options=chrome_options)
+
+        load_and_search(driver, job_title_search, location_search)
+
+        print(find_company(driver))
+        print(find_job_title(driver))
+        print(find_location(driver))
+
+
 
     if st.button("Job Search"):
         # Instantiate the driver

@@ -1,36 +1,80 @@
 from loading_and_instantiate import *
 
+company_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div/div/div/div[1]/div[1]/span/a','//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[1]/span/a']
+
+
+
 def find_company(driver):
     """
-    This function will return the name of the job on the job post.
+    This function returns the name of the company from a job post.
+    Iterates through multiple possible XPaths to locate the company name.
     """
-    try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.css-1ioi40n.e19afand0'))) # Page Loads
-        company_name = driver.find_element(By.CSS_SELECTOR, '.css-1ioi40n.e19afand0').text
-    except:
-        company_name = 'No Company Name'
+    company_xpath_list = [
+        '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div/div/div/div[1]/div[1]/span/a',
+        '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[1]/span/a'
+    ]
+
+    company_name = "No Company Name"  # Default value if all XPaths fail
+
+    for xpath in company_xpath_list:
+        try:
+            # Wait for the element corresponding to the current XPath
+            element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            # Get the text if the element is found
+            company_name = element.text
+            if company_name:  # Stop if a non-empty text is found
+                break
+        except (TimeoutException, NoSuchElementException):
+            continue  # Try the next XPath if the current one fails
+        except Exception as e:
+            return f"An error occurred: {e}"  # Catch unexpected exceptions
+
     return company_name
 
 def find_job_title(driver):
     """
     This function will return the job title on the job post.
+    Iterates through multiple possible XPaths to locate the job title
     """
-    try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.jobsearch-JobInfoHeader-title.css-1t78hkx.e1tiznh50')))
-        job_title = driver.find_element(By.CSS_SELECTOR, '.jobsearch-JobInfoHeader-title.css-1t78hkx.e1tiznh50').text.split('\n')[0]
-    except:
-        job_title = 'No Job Title'
+    job_title_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[1]/h2/span', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[1]/h2/span']
+    job_title = "No Job Title"
+    for xpath in job_title_xpath_list:
+        try:
+            element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            # Get the text if the element is found
+            job_title = element.text.rsplit("-", 1)[0]
+            if job_title:
+                break
+        except (TimeoutException, NoSuchElementException):
+            continue  # Try the next XPath if the current one fails
+        except Exception as e:
+            return f"An error occurred: {e}"  # Catch unexpected exceptions
+        
     return job_title
 
 def find_location(driver):
     """
-    This function will return the location of the job on the job posting.
+    This function will return the location of the job on the job post.
+    Iterates through multiple possible XPaths to locate the location
     """
-    try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '[data-testid="inlineHeader-companyLocation"]')))
-        location = driver.find_element(By.CSS_SELECTOR, '[data-testid="inlineHeader-companyLocation"]').text
-    except:
-        location = 'No Location'
+    location_xpath_list = ['xpath', '//*[@id="jobLocationText"]/div/span', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[2]/div']
+    for xpath in location_xpath_list:
+        try:
+            element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            # Get the text if the element is found
+            location = element.text
+            if location:
+                break
+        except (TimeoutException, NoSuchElementException):
+            continue  # Try the next XPath if the current one fails
+        except Exception as e:
+            return f"An error occurred: {e}"  # Catch unexpected exceptions
     return location
 
 def find_salary(driver):
@@ -105,7 +149,7 @@ def click_on_job_post(driver):
     The function will click on the post by the defined sequence.
     """
     global post_number  # Ensure post_number is global here too
-    driver.find_element('xpath', f'/html/body/main/div/div[2]/div/div[5]/div/div[1]/div[5]/div/ul/li[{post_number}]/div/div/div/div/div/div/table/tbody/tr/td[1]/div[1]/h2/a').click()
+    driver.find_element('xpath', '/html/body/main/div/div[2]/div/div[5]/div/div[1]/div[5]/div/ul/li[2]').click()
     return
 
 post_number = 1
