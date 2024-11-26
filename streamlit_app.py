@@ -373,9 +373,13 @@ with tab2:
 
         load_and_search(driver, job_title_search, location_search)
 
-        print(find_company(driver))
-        print(find_job_title(driver))
-        print(find_location(driver))
+        #print(find_company(driver))
+        #print(find_job_title(driver))
+        #print(find_location(driver))
+        #print(find_employment_type(driver))
+        #print(find_pay(driver))
+        #print(find_job_description(driver))
+        print(find_company_rating(driver))
 
 
 

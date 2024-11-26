@@ -19,7 +19,7 @@ def find_company(driver):
     for xpath in company_xpath_list:
         try:
             # Wait for the element corresponding to the current XPath
-            element = WebDriverWait(driver, 10).until(
+            element = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
             # Get the text if the element is found
@@ -42,7 +42,7 @@ def find_job_title(driver):
     job_title = "No Job Title"
     for xpath in job_title_xpath_list:
         try:
-            element = WebDriverWait(driver, 10).until(
+            element = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
             # Get the text if the element is found
@@ -61,10 +61,10 @@ def find_location(driver):
     This function will return the location of the job on the job post.
     Iterates through multiple possible XPaths to locate the location
     """
-    location_xpath_list = ['xpath', '//*[@id="jobLocationText"]/div/span', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[2]/div']
+    location_xpath_list = ['//*[@id="jobLocationText"]/div/span', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[2]/div']
     for xpath in location_xpath_list:
         try:
-            element = WebDriverWait(driver, 10).until(
+            element = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
             # Get the text if the element is found
@@ -77,51 +77,89 @@ def find_location(driver):
             return f"An error occurred: {e}"  # Catch unexpected exceptions
     return location
 
-def find_salary(driver):
+def find_pay(driver):
     """
-    This function will return the salary on the job description.
+    This function will return the pay on the job description.
+    Iterates through multiple possible XPaths to locate the pay
     """
-    try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.js-match-insights-provider-tvvxwd.ecydgvn1')))
-        salary = driver.find_element(By.CSS_SELECTOR, '.js-match-insights-provider-tvvxwd.ecydgvn1').text
-    except:
-        salary = 'No Salary'
-    return salary
+    pay_xpath_list = ['//*[@id="jobDetailsSection"]/div/div[1]/div[2]/div[1]/div/div/ul/li/div/div/div[1]']
+    for xpath in pay_xpath_list:
+        try:
+            element = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            pay = element.text
+            if pay:
+                break
+        except (TimeoutException, NoSuchElementException):
+            continue  # Try the next XPath if the current one fails
+        except Exception as e:
+            return f"An error occurred: {e}"  # Catch unexpected exceptions
+    return pay
+
 
 def find_employment_type(driver):
     """
     This function will return the employment type e.g. part-time, full-time.
+    Iterates through multiple possible XPaths to locate the employment type
     """
-    try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.css-k5flys.eu4oa1w0')))
-        employment_type = driver.find_element(By.CSS_SELECTOR, '.css-k5flys.eu4oa1w0').text
-        if employment_type.startswith('-'):
-            employment_type = employment_type[1:].strip()
-    except:
-        employment_type = 'No Employment Type'
+    employment_type_xpath_list = ['//*[@id="salaryInfoAndJobType"]/span[2]']
+    for xpath in employment_type_xpath_list:
+        try:
+            element = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            employment_type = element.text[2:]
+            if employment_type:
+                break
+        except (TimeoutException, NoSuchElementException):
+            continue  # Try the next XPath if the current one fails
+        except Exception as e:
+            return f"An error occurred: {e}"  # Catch unexpected exceptions
     return employment_type
 
 def find_job_description(driver):
     """
     This function return the job description from the job post.
+    Iterates through multiple possible XPaths to locate the description
     """
-    try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.jobsearch-JobComponent-description.css-16y4thd.eu4oa1w0')))
-        job_description = driver.find_element(By.CSS_SELECTOR, '.jobsearch-JobComponent-description.css-16y4thd.eu4oa1w0').text
-    except:
-        job_description = 'No Job Description'
+    job_description_xpath_list = ['//*[@id="jobDescriptionText"]']
+    for xpath in job_description_xpath_list:
+        try:
+            element = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            job_description = element.text
+            if job_description:
+                break
+        except (TimeoutException, NoSuchElementException):
+            continue  # Try the next XPath if the current one fails
+        except Exception as e:
+            return f"An error occurred: {e}"  # Catch unexpected exceptions
     return job_description
+
 
 def find_company_rating(driver):
     """
     The function returns the company rating found on the job post.
+    Iterates through multiple possible XPaths to locate the rating
     """
-    try:
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.css-ppxtlp.e1wnkr790')))
-        company_rating = driver.find_element(By.CSS_SELECTOR, '.css-ppxtlp.e1wnkr790').text
-    except:
-        company_rating = 'No Rating'
-    return company_rating
+    company_rating_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[2]/span[1]']
+    for xpath in company_rating_xpath_list:
+        try:
+            element = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, xpath))
+            )
+            rating = element.text
+            if rating:
+                #float
+                break
+        except (TimeoutException, NoSuchElementException):
+            continue  # Try the next XPath if the current one fails
+        except Exception as e:
+            return f"An error occurred: {e}"  # Catch unexpected exceptions
+    return rating
+                
 
 def find_apply_link(driver):
     """
@@ -171,7 +209,7 @@ def save_job_information(driver):
                'company' : find_company(driver),
                'company_rating' : find_company_rating(driver),
                'location' : find_location(driver),
-               'salary' : find_salary(driver),
+               'salary' : find_pay(driver),
                'employment_type' : find_employment_type(driver),
                'job_description' : find_job_description(driver),
                'application_link': find_apply_link(driver)}
