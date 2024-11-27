@@ -1,6 +1,34 @@
 from loading_and_instantiate import *
 
-company_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div/div/div/div[1]/div[1]/span/a','//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[1]/span/a']
+def extract_line_after_keyword(text: str, keyword: str, not_found_word: str):
+    """
+    Extracts the line immediately following the given keyword.
+    """
+    lines = text.splitlines()  # Split the string into lines
+    for i, line in enumerate(lines):
+        if line.strip().lower() == keyword.lower():  # Match the keyword (case-insensitive)
+            if i + 1 < len(lines):  # Ensure there is a next line
+                return lines[i + 1].strip()  # Return the next line, stripped of extra spaces
+    return not_found_word # Return None if the keyword or next line is not found
+
+def lines_between_keywords(text: str, start_keyword: str, stop_keyword: str, not_found_word: str):
+    """
+    Returns a list of lines between the start and stop keywords
+    """
+    lines = text.splitlines()
+    result = []
+    collecting = False
+    for line in lines:
+        stripped_line = line.strip()  # Strip whitespace from the current line
+        if stripped_line.lower() == start_keyword.lower():
+            collecting = True  # Start collecting lines after start keyword
+            continue
+        if stripped_line.lower() == stop_keyword.lower():
+            break  # Stop collecting when stop keyword is encountered
+        if collecting:
+            result.append(stripped_line)  # Append lines to result if collecting
+
+    return result
 
 
 
@@ -62,6 +90,7 @@ def find_location(driver):
     Iterates through multiple possible XPaths to locate the location
     """
     location_xpath_list = ['//*[@id="jobLocationText"]/div/span', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[2]/div']
+    location = "No Location"
     for xpath in location_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(
@@ -82,14 +111,16 @@ def find_pay(driver):
     This function will return the pay on the job description.
     Iterates through multiple possible XPaths to locate the pay
     """
-    pay_xpath_list = ['//*[@id="jobDetailsSection"]/div/div[1]/div[2]/div[1]/div/div/ul/li/div/div/div[1]']
+    pay_xpath_list = ['//*[@id="jobDetailsSection"]/div/div[1]']
+    pay = "No Pay"
     for xpath in pay_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
-            pay = element.text
-            if pay:
+            job_details = element.text
+            if job_details:
+                pay = extract_line_after_keyword(job_details, 'pay', 'No Pay')
                 break
         except (TimeoutException, NoSuchElementException):
             continue  # Try the next XPath if the current one fails
@@ -103,14 +134,17 @@ def find_employment_type(driver):
     This function will return the employment type e.g. part-time, full-time.
     Iterates through multiple possible XPaths to locate the employment type
     """
-    employment_type_xpath_list = ['//*[@id="salaryInfoAndJobType"]/span[2]']
+
+    employment_type_xpath_list = ['//*[@id="jobDetailsSection"]/div/div[1]']
+    employment_type = "No Employment Type"
     for xpath in employment_type_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
-            employment_type = element.text[2:]
-            if employment_type:
+            job_details = element.text
+            if job_details:
+                employment_type = lines_between_keywords(job_details, 'Job type', 'Shift and schedule', 'No Employment Type')
                 break
         except (TimeoutException, NoSuchElementException):
             continue  # Try the next XPath if the current one fails
@@ -124,9 +158,10 @@ def find_job_description(driver):
     Iterates through multiple possible XPaths to locate the description
     """
     job_description_xpath_list = ['//*[@id="jobDescriptionText"]']
+    job_description = "No Job Description"
     for xpath in job_description_xpath_list:
         try:
-            element = WebDriverWait(driver, 5).until(
+            element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, xpath))
             )
             job_description = element.text
@@ -144,7 +179,9 @@ def find_company_rating(driver):
     The function returns the company rating found on the job post.
     Iterates through multiple possible XPaths to locate the rating
     """
-    company_rating_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[2]/span[1]']
+    company_rating_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[2]/span[1]',
+                                 '#//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div/div/div/div[1]/div[2]/span[1]']
+    rating = "No Rating"
     for xpath in company_rating_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(

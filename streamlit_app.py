@@ -160,14 +160,14 @@ def display_job_details():
     Function to display the current web-scraped job from Indeed into Streamlit app
     """
     job_dic = st.session_state['job_dic']
-    job_description = job_dic['job_description']
-    job_description_prompt = f"""
-    In 200 words and In a single paragraph, summarise the job post, including all the important details such as company, position, pay, location, projects, skills and tools required. 
-    The job post is provided below, delimited by 3 backticks.
-    ```{job_description}```
-    """
-    job_desc_summary = get_completion(job_description_prompt)
-    st.session_state['job_desc_summary'] = job_desc_summary
+    #job_description = job_dic['job_description']
+    #job_description_prompt = f"""
+    #In 200 words and In a single paragraph, summarise the job post, including all the important details such as company, position, pay, location, projects, skills and tools required. 
+    #The job post is provided below, delimited by 3 backticks.
+    #```{job_description}```
+    #"""
+    #job_desc_summary = get_completion(job_description_prompt)
+    #st.session_state['job_desc_summary'] = job_desc_summary
 
     with st.expander("Job Details", expanded=True):
         # Job Title
@@ -192,8 +192,8 @@ def display_job_details():
 
         #Job description
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: white;'>{job_desc_summary}</p>", unsafe_allow_html=True)
-        #st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
+        #st.markdown(f"<p style='color: white;'>{job_desc_summary}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
         
         # Application link
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
@@ -372,15 +372,14 @@ with tab2:
         driver = uc.Chrome(options=chrome_options)
 
         load_and_search(driver, job_title_search, location_search)
-
+        
         #print(find_company(driver))
         #print(find_job_title(driver))
         #print(find_location(driver))
-        #print(find_employment_type(driver))
-        #print(find_pay(driver))
+        print(find_employment_type(driver))
+        print(find_pay(driver))
         #print(find_job_description(driver))
-        print(find_company_rating(driver))
-
+        #print(find_company_rating(driver))
 
 
     if st.button("Job Search"):
@@ -388,19 +387,26 @@ with tab2:
         driver = uc.Chrome(options=chrome_options)
 
         load_and_search(driver, job_title_search, location_search)
+
+        
+        # Save the job information
+        #save_job_information(driver)
+
+        #print(f"Job Information: {save_job_information(driver)}")
         
 
         # Find the job information
-        job_dic = save_job_information(driver)
+        #job_dic = save_job_information(driver)
 
         # Save job_dic to session state so it can be accessed outside this block
-        st.session_state['job_dic'] = job_dic
-        st.session_state['driver'] = driver
+        #st.session_state['job_dic'] = job_dic
+        #st.session_state['driver'] = driver
 
         with open("job_description.json", "w") as outfile: 
-            json.dump(job_dic, outfile)
+            json.dump(save_job_information(driver), outfile)
+        st.session_state['job_dic'] = save_job_information(driver)
 
-        display_job_details()
+        #display_job_details()
         
             
     if st.button("➡️ Next Job"):
