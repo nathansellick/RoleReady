@@ -159,7 +159,10 @@ def display_job_details():
     """
     Function to display the current web-scraped job from Indeed into Streamlit app
     """
-    job_dic = st.session_state['job_dic']
+    with open('job_description.json', 'r') as file:
+        job_description = json.load(file)
+    
+    #job_dic = st.session_state['job_dic']
     #job_description = job_dic['job_description']
     #job_description_prompt = f"""
     #In 200 words and In a single paragraph, summarise the job post, including all the important details such as company, position, pay, location, projects, skills and tools required. 
@@ -172,32 +175,33 @@ def display_job_details():
     with st.expander("Job Details", expanded=True):
         # Job Title
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Title</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['job_title']}</h3>", unsafe_allow_html=True)
+        #st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['job_title']}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_description['job_title']}</h3>", unsafe_allow_html=True)
 
         # Company
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Company</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['company']}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_description['company']}</h3>", unsafe_allow_html=True)
     
         #Location 
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Location</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['location']}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_description['location']}</h3>", unsafe_allow_html=True)
         
         # Employment type
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Employment Type</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['employment_type']}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_description['employment_type']}</h3>", unsafe_allow_html=True)
         
         # Salary
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Salary</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_dic['salary']}</h3>", unsafe_allow_html=True)
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_description['salary']}</h3>", unsafe_allow_html=True)
 
         #Job description
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Job Description</h2>", unsafe_allow_html=True)
         #st.markdown(f"<p style='color: white;'>{job_desc_summary}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p style='color: white;'>{job_dic['job_description']}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='color: white;'>{job_description['job_description']}</p>", unsafe_allow_html=True)
         
         # Application link
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Apply Here</h2>", unsafe_allow_html=True)
-        st.markdown(f"<a href='{job_dic['application_link']}' target='_blank' style='color: white;'>{job_dic['application_link']}</a>", unsafe_allow_html=True)
+        st.markdown(f"<a href='{job_description['application_link']}' target='_blank' style='color: white;'>{job_description['application_link']}</a>", unsafe_allow_html=True)
 
 
 
@@ -404,9 +408,10 @@ with tab2:
 
         with open("job_description.json", "w") as outfile: 
             json.dump(save_job_information(driver), outfile)
+        print("json dumped")
         st.session_state['job_dic'] = save_job_information(driver)
 
-        #display_job_details()
+        display_job_details()
         
             
     if st.button("➡️ Next Job"):

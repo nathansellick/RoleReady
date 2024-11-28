@@ -179,8 +179,7 @@ def find_company_rating(driver):
     The function returns the company rating found on the job post.
     Iterates through multiple possible XPaths to locate the rating
     """
-    company_rating_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[2]/span[1]',
-                                 '#//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div/div/div/div[1]/div[2]/span[1]']
+    company_rating_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[2]/span[1]', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div/div/div/div[1]/div[2]/span[1]']
     rating = "No Rating"
     for xpath in company_rating_xpath_list:
         try:
