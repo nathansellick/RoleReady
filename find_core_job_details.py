@@ -67,7 +67,7 @@ def find_job_title(driver):
     Iterates through multiple possible XPaths to locate the job title
     """
     job_title_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[1]/h2/span', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[1]/h2/span']
-    job_title = "No Job Title"
+    job_title = "N/A"
     for xpath in job_title_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(
@@ -90,7 +90,7 @@ def find_location(driver):
     Iterates through multiple possible XPaths to locate the location
     """
     location_xpath_list = ['//*[@id="jobLocationText"]/div/span', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[2]/div']
-    location = "No Location"
+    location = "N/A"
     for xpath in location_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(
@@ -112,7 +112,7 @@ def find_pay(driver):
     Iterates through multiple possible XPaths to locate the pay
     """
     pay_xpath_list = ['//*[@id="jobDetailsSection"]/div/div[1]']
-    pay = "No Pay"
+    pay = "N/A"
     for xpath in pay_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(
@@ -136,7 +136,7 @@ def find_employment_type(driver):
     """
 
     employment_type_xpath_list = ['//*[@id="jobDetailsSection"]/div/div[1]']
-    employment_type = "No Employment Type"
+    employment_type = "N/A"
     for xpath in employment_type_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(
@@ -180,7 +180,7 @@ def find_company_rating(driver):
     Iterates through multiple possible XPaths to locate the rating
     """
     company_rating_xpath_list = ['//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[2]/div[2]/div/div/div/div[1]/div[2]/span[1]', '//*[@id="jobsearch-ViewjobPaneWrapper"]/div/div[2]/div[2]/div[1]/div/div[1]/div[2]/div/div/div/div[1]/div[2]/span[1]']
-    rating = "No Rating"
+    rating = "N/A"
     for xpath in company_rating_xpath_list:
         try:
             element = WebDriverWait(driver, 5).until(

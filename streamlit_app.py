@@ -171,6 +171,7 @@ def display_job_details():
     #"""
     #job_desc_summary = get_completion(job_description_prompt)
     #st.session_state['job_desc_summary'] = job_desc_summary
+    employment_types = ", ".join(job_description["employment_type"])
 
     with st.expander("Job Details", expanded=True):
         # Job Title
@@ -188,7 +189,8 @@ def display_job_details():
         
         # Employment type
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Employment Type</h2>", unsafe_allow_html=True)
-        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{job_description['employment_type']}</h3>", unsafe_allow_html=True)
+
+        st.markdown(f"<h3 style='color: white; font-weight: normal;'>{employment_types}</h3>", unsafe_allow_html=True)
         
         # Salary
         st.markdown("<h2 style='color: lightgrey; font-weight: bold; text-decoration: underline;'>Salary</h2>", unsafe_allow_html=True)
@@ -409,7 +411,7 @@ with tab2:
         with open("job_description.json", "w") as outfile: 
             json.dump(save_job_information(driver), outfile)
         print("json dumped")
-        st.session_state['job_dic'] = save_job_information(driver)
+        
 
         display_job_details()
         
